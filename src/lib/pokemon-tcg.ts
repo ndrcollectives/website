@@ -30,6 +30,36 @@ function apiHeaders(): HeadersInit {
   return apiKey ? { "X-Api-Key": apiKey } : {};
 }
 
+const RETRYABLE_STATUSES = new Set([429, 502, 503, 504]);
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// The public API (especially unauthenticated — see POKEMON_TCG_API_KEY)
+// occasionally returns transient 429/502/503/504s under load or rate
+// limiting. Retry those a couple of times with backoff before giving up;
+// anything else (404, malformed query, etc.) fails immediately.
+async function fetchWithRetry(url: string, attempts = 3): Promise<Response> {
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      const res = await fetch(url, { headers: apiHeaders(), cache: "no-store" });
+      if (res.ok || !RETRYABLE_STATUSES.has(res.status) || attempt === attempts) {
+        return res;
+      }
+      lastError = new Error(`${res.status} ${res.statusText}`);
+    } catch (error) {
+      lastError = error;
+      if (attempt === attempts) throw error;
+    }
+    await sleep(500 * attempt);
+  }
+
+  throw lastError instanceof Error ? lastError : new Error(String(lastError));
+}
+
 function toIsoDate(apiDate: string): string {
   return apiDate.replaceAll("/", "-");
 }
@@ -40,9 +70,8 @@ export async function fetchAllSets(): Promise<SyncedSet[]> {
   const pageSize = 250;
 
   for (;;) {
-    const res = await fetch(
+    const res = await fetchWithRetry(
       `${API_BASE}/sets?page=${page}&pageSize=${pageSize}&orderBy=releaseDate`,
-      { headers: apiHeaders(), cache: "no-store" },
     );
 
     if (!res.ok) {
@@ -101,9 +130,8 @@ export async function fetchCardsForSet(setCode: string): Promise<SyncedCard[]> {
   const pageSize = 250;
 
   for (;;) {
-    const res = await fetch(
+    const res = await fetchWithRetry(
       `${API_BASE}/cards?q=${encodeURIComponent(`set.id:${setCode}`)}&page=${page}&pageSize=${pageSize}&orderBy=number`,
-      { headers: apiHeaders(), cache: "no-store" },
     );
 
     if (!res.ok) {
