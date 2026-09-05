@@ -82,9 +82,12 @@ export default async function NewsPage({
                   />
                 </div>
               )}
-              <Badge variant="purple" className="mb-2">
-                {article.category}
-              </Badge>
+              <div className="mb-2 flex flex-wrap gap-2">
+                <Badge variant="purple">{article.category}</Badge>
+                {article.source_name && (
+                  <Badge variant="blue">via {article.source_name}</Badge>
+                )}
+              </div>
               <h2 className="font-semibold leading-snug group-hover:text-accent-yellow">
                 {article.title}
               </h2>

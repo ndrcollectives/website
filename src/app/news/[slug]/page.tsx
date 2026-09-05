@@ -91,6 +91,24 @@ export default async function ArticlePage({ params }: Props) {
         {article.content}
       </div>
 
+      {article.source_url && (
+        <a
+          href={article.source_url}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-6 flex items-center justify-between rounded-xl border border-border bg-surface p-4 text-sm hover:border-accent-blue/60"
+        >
+          <span>
+            Aggregated from{" "}
+            <span className="font-semibold text-accent-blue">
+              {article.source_name}
+            </span>
+            . Read the full story there.
+          </span>
+          <span className="text-accent-blue">&rarr;</span>
+        </a>
+      )}
+
       {relatedProducts.length > 0 && (
         <section className="mt-16">
           <h2 className="mb-4 text-xl font-bold">Shop the Set</h2>

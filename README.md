@@ -56,10 +56,8 @@ values above.
 
 ### 5. Set release data
 
-News articles are admin-authored through the CMS at `/admin/news` — there's
-no external news source. Set data (names, release dates, card counts,
-artwork) is kept in sync with the [Pokémon TCG API](https://pokemontcg.io)
-instead of hand-entry:
+Set data (names, release dates, card counts, artwork) is kept in sync with
+the [Pokémon TCG API](https://pokemontcg.io) instead of hand-entry:
 
 - Click **"Sync Sets from Pokémon TCG API"** on `/admin/sets` to sync
   on demand.
@@ -72,13 +70,32 @@ instead of hand-entry:
   API picks it up, at which point the next sync reconciles it (matched
   by the API's set code).
 
-### 6. Seed sample data (optional)
+### 6. News: hand-written and/or automated
+
+News is admin-authored by default through the CMS at `/admin/news`. You can
+additionally automate it via RSS aggregation:
+
+- Set `NEWS_RSS_FEEDS` to a comma-separated list of RSS feed URLs you have
+  the right to aggregate from (e.g. official Pokémon TCG press feeds, a
+  news site's own RSS, a subreddit's `.rss` feed).
+- Click **"Sync News from RSS Feeds"** on `/admin/news`, or let the daily
+  `/api/cron/sync-news` schedule (in `vercel.json`) handle it.
+- Imported items store only a headline and a short excerpt, and link back
+  to the original source (shown on the article page and tagged with a
+  "via `<source>`" badge) — they are **not** full-text republished. This
+  keeps automation copyright-safe; verify your chosen feeds' own terms
+  still permit this kind of aggregation.
+- Leave `NEWS_RSS_FEEDS` unset to keep news purely admin-authored — the
+  sync button will show an error explaining it's not configured, and the
+  cron route no-ops silently.
+
+### 7. Seed sample data (optional)
 
 ```bash
 npm run seed
 ```
 
-### 7. Run the dev server
+### 8. Run the dev server
 
 ```bash
 npm run dev

@@ -88,6 +88,8 @@ export type NewsArticle = {
   author_id: string | null;
   published_at: string | null;
   is_published: boolean;
+  source_url: string | null;
+  source_name: string | null;
 };
 
 export type OrderStatus =

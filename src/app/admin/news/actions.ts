@@ -1,8 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { syncNewsArticles } from "@/lib/news-sync";
 
 function slugify(title: string) {
   return title
@@ -33,6 +35,24 @@ export async function createArticle(formData: FormData) {
   if (error) throw new Error(error.message);
   revalidatePath("/admin/news");
   revalidatePath("/news");
+}
+
+export async function syncNewsFromFeeds() {
+  await requireAdmin();
+  const supabase = createAdminClient();
+
+  let synced = 0;
+  try {
+    synced = await syncNewsArticles(supabase);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Sync failed";
+    redirect(`/admin/news?error=${encodeURIComponent(message)}`);
+  }
+
+  revalidatePath("/admin/news");
+  revalidatePath("/news");
+  revalidatePath("/");
+  redirect(`/admin/news?synced=${synced}`);
 }
 
 export async function togglePublish(formData: FormData) {

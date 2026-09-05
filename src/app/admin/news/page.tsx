@@ -4,10 +4,15 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { createArticle, deleteArticle, togglePublish } from "./actions";
+import { createArticle, deleteArticle, syncNewsFromFeeds, togglePublish } from "./actions";
 
-export default async function AdminNewsPage() {
+export default async function AdminNewsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ synced?: string; error?: string }>;
+}) {
   await requireAdmin();
+  const { synced, error } = await searchParams;
   const supabase = createAdminClient();
   const { data: articles } = await supabase
     .from("news_articles")
@@ -17,6 +22,30 @@ export default async function AdminNewsPage() {
   return (
     <div>
       <h1 className="text-2xl font-bold">News & Content CMS</h1>
+
+      {synced && (
+        <p className="mt-4 rounded-lg border border-accent-yellow/40 bg-accent-yellow/10 p-3 text-sm text-accent-yellow">
+          Synced {synced} articles from configured RSS feeds.
+        </p>
+      )}
+      {error && (
+        <p className="mt-4 rounded-lg border border-accent-red/40 bg-accent-red/10 p-3 text-sm text-accent-red">
+          {error}
+        </p>
+      )}
+
+      <form action={syncNewsFromFeeds} className="mt-6">
+        <Button type="submit" variant="secondary">
+          Sync News from RSS Feeds
+        </Button>
+        <p className="mt-2 text-xs text-muted">
+          Imports headlines + short excerpts from the feeds configured in
+          the <code>NEWS_RSS_FEEDS</code> environment variable, linking
+          back to each original source rather than republishing full
+          articles. Set that variable in Vercel to configure which sites
+          get aggregated.
+        </p>
+      </form>
 
       <form
         action={createArticle}
@@ -58,6 +87,9 @@ export default async function AdminNewsPage() {
                 <Badge variant={article.is_published ? "yellow" : "default"}>
                   {article.is_published ? "Published" : "Draft"}
                 </Badge>
+                {article.source_name && (
+                  <Badge variant="blue">via {article.source_name}</Badge>
+                )}
               </div>
               <p className="text-sm text-muted">{article.category}</p>
             </div>
