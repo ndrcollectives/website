@@ -22,10 +22,15 @@ npm install
 ### 2. Configure Supabase
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. Run the migration in `supabase/migrations/0001_init.sql` against your
+2. Run **every file in `supabase/migrations/` in order** against your
    project (via the SQL editor, or the Supabase CLI: `supabase db push`).
-   This creates all tables, RLS policies, the inventory-decrement RPC, and
-   the storage buckets (`product-images`, `news-assets`, `set-assets`).
+   `0001_init.sql` creates all tables, RLS policies, the
+   inventory-decrement RPC, and the storage buckets (`product-images`,
+   `news-assets`, `set-assets`); `0002_fix_profiles_rls_recursion.sql`
+   fixes a recursive-policy bug in the admin RLS checks from `0001` — if
+   you already ran `0001` before this file existed, just run `0002` on
+   its own to patch it (you'll see `infinite recursion detected in
+   policy for relation "profiles"` in logs if you're hitting this).
 3. To make your own account an admin, sign up once through the app, then in
    the SQL editor run:
    ```sql
