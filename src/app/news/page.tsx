@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import type { Metadata } from "next";
 import { Badge } from "@/components/ui/badge";
 import { getPublishedArticles } from "@/lib/queries";
@@ -73,12 +72,12 @@ export default async function NewsPage({
               className="group rounded-xl border border-border bg-surface p-4 transition-colors hover:border-accent-yellow/50"
             >
               {article.cover_image_url && (
-                <div className="relative mb-3 aspect-video overflow-hidden rounded-lg bg-surface-raised">
-                  <Image
+                <div className="mb-3 flex aspect-video items-center justify-center overflow-hidden rounded-lg bg-surface-raised p-2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
                     src={article.cover_image_url}
                     alt={article.title}
-                    fill
-                    className="object-contain transition-transform group-hover:scale-105"
+                    className="max-h-full w-auto max-w-full transition-transform group-hover:scale-105"
                   />
                 </div>
               )}

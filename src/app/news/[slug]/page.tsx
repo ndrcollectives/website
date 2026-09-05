@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { Badge } from "@/components/ui/badge";
@@ -76,13 +75,12 @@ export default async function ArticlePage({ params }: Props) {
       )}
 
       {article.cover_image_url && (
-        <div className="relative mt-6 aspect-video overflow-hidden rounded-xl bg-surface-raised">
-          <Image
+        <div className="mt-6 flex items-center justify-center overflow-hidden rounded-xl bg-surface-raised p-4">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src={article.cover_image_url}
             alt={article.title}
-            fill
-            priority
-            className="object-contain"
+            className="max-h-96 w-auto max-w-full"
           />
         </div>
       )}
