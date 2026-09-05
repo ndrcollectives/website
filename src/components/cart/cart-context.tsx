@@ -12,6 +12,16 @@ import type { CartItem } from "@/lib/types";
 
 const STORAGE_KEY = "ndr-collectives-cart";
 
+function isValidCartItem(value: unknown): value is CartItem {
+  if (!value || typeof value !== "object") return false;
+  const item = value as Partial<CartItem>;
+  return (
+    typeof item.productId === "string" &&
+    typeof item.priceCents === "number" &&
+    typeof item.quantity === "number"
+  );
+}
+
 type CartContextValue = {
   items: CartItem[];
   isOpen: boolean;
@@ -38,8 +48,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
       if (raw) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setItems(JSON.parse(raw));
+        const parsed: unknown = JSON.parse(raw);
+        // Guard against corrupted/tampered/stale-format storage — anything
+        // that isn't the array shape we expect is dropped rather than
+        // crashing every render that calls items.reduce().
+        if (Array.isArray(parsed) && parsed.every(isValidCartItem)) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setItems(parsed);
+        } else {
+          window.localStorage.removeItem(STORAGE_KEY);
+        }
       }
     } catch {
       // ignore malformed/unavailable storage
