@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { Sparkles } from "lucide-react";
 import { NewsletterSignup } from "@/components/newsletter-signup";
+import { Logomark } from "@/components/logomark";
 
 export function Footer() {
   return (
@@ -9,7 +9,7 @@ export function Footer() {
         <div className="grid gap-10 md:grid-cols-4">
           <div>
             <Link href="/" className="flex items-center gap-2 font-bold">
-              <Sparkles className="h-5 w-5 text-accent-yellow" />
+              <Logomark />
               NDR Collectives
             </Link>
             <p className="mt-3 max-w-xs text-sm text-muted">

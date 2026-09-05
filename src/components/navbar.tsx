@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { Menu, Search, ShoppingCart, User, X, Sparkles } from "lucide-react";
+import { Menu, Search, ShoppingCart, User, X } from "lucide-react";
 import { useCart } from "@/components/cart/cart-context";
 import { Input } from "@/components/ui/input";
+import { Logomark } from "@/components/logomark";
 
 const NAV_LINKS = [
   { href: "/shop", label: "Shop" },
@@ -31,7 +32,7 @@ export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
     <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4">
         <Link href="/" className="flex items-center gap-2 font-bold">
-          <Sparkles className="h-5 w-5 text-accent-yellow" />
+          <Logomark />
           <span className="hidden sm:inline">NDR Collectives</span>
         </Link>
 
