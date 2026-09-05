@@ -9,10 +9,10 @@ import { createArticle, deleteArticle, syncNewsFromFeeds, togglePublish } from "
 export default async function AdminNewsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ synced?: string; error?: string }>;
+  searchParams: Promise<{ synced?: string; error?: string; feedErrors?: string }>;
 }) {
   await requireAdmin();
-  const { synced, error } = await searchParams;
+  const { synced, error, feedErrors } = await searchParams;
   const supabase = createAdminClient();
   const { data: articles } = await supabase
     .from("news_articles")
@@ -26,6 +26,11 @@ export default async function AdminNewsPage({
       {synced && (
         <p className="mt-4 rounded-lg border border-accent-yellow/40 bg-accent-yellow/10 p-3 text-sm text-accent-yellow">
           Synced {synced} articles from configured RSS feeds.
+        </p>
+      )}
+      {feedErrors && (
+        <p className="mt-4 rounded-lg border border-accent-red/40 bg-accent-red/10 p-3 text-sm text-accent-red">
+          Some feeds failed and were skipped: {feedErrors}
         </p>
       )}
       {error && (

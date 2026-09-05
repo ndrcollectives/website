@@ -42,8 +42,9 @@ export async function syncNewsFromFeeds() {
   const supabase = createAdminClient();
 
   let synced = 0;
+  let failures: { feedUrl: string; message: string }[] = [];
   try {
-    synced = await syncNewsArticles(supabase);
+    ({ synced, failures } = await syncNewsArticles(supabase));
   } catch (error) {
     const message = error instanceof Error ? error.message : "Sync failed";
     redirect(`/admin/news?error=${encodeURIComponent(message)}`);
@@ -52,7 +53,15 @@ export async function syncNewsFromFeeds() {
   revalidatePath("/admin/news");
   revalidatePath("/news");
   revalidatePath("/");
-  redirect(`/admin/news?synced=${synced}`);
+
+  const params = new URLSearchParams({ synced: String(synced) });
+  if (failures.length > 0) {
+    params.set(
+      "feedErrors",
+      failures.map((f) => `${f.feedUrl}: ${f.message}`).join(" | "),
+    );
+  }
+  redirect(`/admin/news?${params.toString()}`);
 }
 
 export async function togglePublish(formData: FormData) {

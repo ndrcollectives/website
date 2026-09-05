@@ -20,8 +20,8 @@ export async function GET(request: Request) {
 
   try {
     const supabase = createAdminClient();
-    const synced = await syncNewsArticles(supabase);
-    return NextResponse.json({ synced });
+    const { synced, failures } = await syncNewsArticles(supabase);
+    return NextResponse.json({ synced, failures });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Sync failed";
     return NextResponse.json({ error: message }, { status: 500 });

@@ -84,7 +84,14 @@ function extractImage(item: Record<string, unknown>): string | null {
   return null;
 }
 
-export async function fetchNewsFromFeeds(): Promise<SyncedArticle[]> {
+export type FeedFetchResult = {
+  articles: SyncedArticle[];
+  // Feeds that failed to fetch/parse, so one bad URL doesn't take down
+  // every other configured feed's sync.
+  failures: { feedUrl: string; message: string }[];
+};
+
+export async function fetchNewsFromFeeds(): Promise<FeedFetchResult> {
   const feeds = getConfiguredFeeds();
   if (feeds.length === 0) {
     throw new Error(
@@ -92,15 +99,19 @@ export async function fetchNewsFromFeeds(): Promise<SyncedArticle[]> {
     );
   }
 
-  const results: SyncedArticle[] = [];
+  const articles: SyncedArticle[] = [];
+  const failures: { feedUrl: string; message: string }[] = [];
 
   for (const feedUrl of feeds) {
     let feed;
     try {
       feed = await parser.parseURL(feedUrl);
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      throw new Error(`Failed to fetch feed ${feedUrl}: ${message}`);
+      failures.push({
+        feedUrl,
+        message: error instanceof Error ? error.message : String(error),
+      });
+      continue;
     }
     const sourceName = feed.title || new URL(feedUrl).hostname;
 
@@ -111,7 +122,7 @@ export async function fetchNewsFromFeeds(): Promise<SyncedArticle[]> {
       const summary = stripHtml(rawSummary);
       const publishedAt = item.isoDate || item.pubDate || new Date().toISOString();
 
-      results.push({
+      articles.push({
         title: item.title,
         slug: `${slugify(item.title)}-${slugify(sourceName)}`,
         excerpt: truncate(summary, 200),
@@ -125,16 +136,33 @@ export async function fetchNewsFromFeeds(): Promise<SyncedArticle[]> {
     }
   }
 
-  return results;
+  if (articles.length === 0 && failures.length > 0) {
+    throw new Error(
+      failures.map((f) => `${f.feedUrl}: ${f.message}`).join("; "),
+    );
+  }
+
+  return { articles, failures };
 }
+
+export type SyncNewsResult = {
+  synced: number;
+  failures: { feedUrl: string; message: string }[];
+};
 
 // Fetches configured feeds and upserts them into news_articles, matched by
 // source_url so re-running the sync updates existing items instead of
 // duplicating them. Shared by the admin "Sync" button and the cron route.
+// A feed that fails to fetch is reported in `failures` rather than
+// aborting the whole sync — the other configured feeds still go through.
 export async function syncNewsArticles(
   supabase: SupabaseClient,
-): Promise<number> {
-  const articles = await fetchNewsFromFeeds();
+): Promise<SyncNewsResult> {
+  const { articles, failures } = await fetchNewsFromFeeds();
+
+  if (articles.length === 0) {
+    return { synced: 0, failures };
+  }
 
   const { error } = await supabase.from("news_articles").upsert(
     articles.map((a) => ({
@@ -153,5 +181,5 @@ export async function syncNewsArticles(
   );
 
   if (error) throw new Error(error.message);
-  return articles.length;
+  return { synced: articles.length, failures };
 }
