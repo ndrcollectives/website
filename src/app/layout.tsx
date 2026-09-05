@@ -6,6 +6,7 @@ import { CartDrawer } from "@/components/cart/cart-drawer";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { createClient } from "@/lib/supabase/server";
+import { isNextControlFlowError } from "@/lib/supabase/errors";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -44,7 +45,8 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       data: { user },
     } = await supabase.auth.getUser();
     isSignedIn = !!user;
-  } catch {
+  } catch (error) {
+    if (isNextControlFlowError(error)) throw error;
     // Supabase env vars not configured yet — render signed-out state.
   }
 
