@@ -31,6 +31,12 @@ const parser = new Parser({
   customFields: {
     item: [["media:content", "mediaContent"], ["enclosure", "enclosure"]],
   },
+  headers: {
+    // Many sites (Reddit included) block or error on requests with no
+    // User-Agent, or one that identifies as a generic script/bot.
+    "User-Agent":
+      "Mozilla/5.0 (compatible; NDRCollectivesBot/1.0; +https://ndrcollectives.vercel.app)",
+  },
 });
 
 function getConfiguredFeeds(): string[] {
@@ -89,7 +95,13 @@ export async function fetchNewsFromFeeds(): Promise<SyncedArticle[]> {
   const results: SyncedArticle[] = [];
 
   for (const feedUrl of feeds) {
-    const feed = await parser.parseURL(feedUrl);
+    let feed;
+    try {
+      feed = await parser.parseURL(feedUrl);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to fetch feed ${feedUrl}: ${message}`);
+    }
     const sourceName = feed.title || new URL(feedUrl).hostname;
 
     for (const item of feed.items) {
