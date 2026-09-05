@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0b0f19;
+  --surface: #111827;
+  --surface-raised: #161d2e;
+  --border: #232b3d;
+  --foreground: #e5e7eb;
+  --muted: #8b93a7;
+
+  --accent-yellow: #facc15;
+  --accent-purple: #a855f7;
+  --accent-blue: #38bdf8;
+  --accent-red: #ef4444;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-border: var(--border);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-accent-yellow: var(--accent-yellow);
+  --color-accent-purple: var(--accent-purple);
+  --color-accent-blue: var(--accent-blue);
+  --color-accent-red: var(--accent-red);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+::selection {
+  background: var(--accent-yellow);
+  color: #0b0f19;
+}
+
+.holo-card {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.15s ease-out;
+}
+
+.holo-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    115deg,
+    transparent 20%,
+    rgba(56, 189, 248, 0.35) 36%,
+    rgba(168, 85, 247, 0.35) 48%,
+    rgba(250, 204, 21, 0.35) 60%,
+    transparent 76%
+  );
+  background-size: 200% 200%;
+  opacity: 0;
+  transition:
+    opacity 0.2s ease,
+    background-position 0.15s ease-out;
+  mix-blend-mode: color-dodge;
+  pointer-events: none;
+}
+
+.holo-card:hover::after {
+  opacity: 0.85;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 0% 0%;
+  }
+  to {
+    background-position: 100% 100%;
+  }
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+}
