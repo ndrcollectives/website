@@ -73,21 +73,28 @@ the [Pokémon TCG API](https://pokemontcg.io) instead of hand-entry:
 ### 6. News: hand-written and/or automated
 
 News is admin-authored by default through the CMS at `/admin/news`. You can
-additionally automate it via RSS aggregation:
+additionally automate it from two independent sources (use either, both,
+or neither):
 
-- Set `NEWS_RSS_FEEDS` to a comma-separated list of RSS feed URLs you have
-  the right to aggregate from (e.g. official Pokémon TCG press feeds, a
-  news site's own RSS, a subreddit's `.rss` feed).
-- Click **"Sync News from RSS Feeds"** on `/admin/news`, or let the daily
-  `/api/cron/sync-news` schedule (in `vercel.json`) handle it.
+- **RSS**: set `NEWS_RSS_FEEDS` to a comma-separated list of feed URLs you
+  have the right to aggregate from (e.g. a TCG news site's own RSS, a
+  subreddit's `.rss` feed).
+- **Pokémon's official press site**: set `NEWS_OFFICIAL_PRESS=true` to
+  pull from `press.pokemon.com` (The Pokémon Company's own press site).
+  It doesn't publish an RSS feed, so this parses the page's plain HTML
+  directly (`lib/news-sync.ts`) rather than a stable public API — a
+  redesign of that site could break it silently, so re-check it
+  occasionally.
+- Click **"Sync News from Configured Sources"** on `/admin/news`, or let
+  the daily `/api/cron/sync-news` schedule (in `vercel.json`) handle it.
 - Imported items store only a headline and a short excerpt, and link back
   to the original source (shown on the article page and tagged with a
   "via `<source>`" badge) — they are **not** full-text republished. This
-  keeps automation copyright-safe; verify your chosen feeds' own terms
+  keeps automation copyright-safe; verify your chosen RSS feeds' own terms
   still permit this kind of aggregation.
-- Leave `NEWS_RSS_FEEDS` unset to keep news purely admin-authored — the
-  sync button will show an error explaining it's not configured, and the
-  cron route no-ops silently.
+- Leave both env vars unset to keep news purely admin-authored — the sync
+  button will show an error explaining nothing's configured, and the cron
+  route no-ops silently.
 
 ### 7. Seed sample data (optional)
 

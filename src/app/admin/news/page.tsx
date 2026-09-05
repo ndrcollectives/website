@@ -25,12 +25,12 @@ export default async function AdminNewsPage({
 
       {synced && (
         <p className="mt-4 rounded-lg border border-accent-yellow/40 bg-accent-yellow/10 p-3 text-sm text-accent-yellow">
-          Synced {synced} articles from configured RSS feeds.
+          Synced {synced} articles from configured news sources.
         </p>
       )}
       {feedErrors && (
         <p className="mt-4 rounded-lg border border-accent-red/40 bg-accent-red/10 p-3 text-sm text-accent-red">
-          Some feeds failed and were skipped: {feedErrors}
+          Some sources failed and were skipped: {feedErrors}
         </p>
       )}
       {error && (
@@ -41,14 +41,16 @@ export default async function AdminNewsPage({
 
       <form action={syncNewsFromFeeds} className="mt-6">
         <Button type="submit" variant="secondary">
-          Sync News from RSS Feeds
+          Sync News from Configured Sources
         </Button>
         <p className="mt-2 text-xs text-muted">
-          Imports headlines + short excerpts from the feeds configured in
-          the <code>NEWS_RSS_FEEDS</code> environment variable, linking
-          back to each original source rather than republishing full
-          articles. Set that variable in Vercel to configure which sites
-          get aggregated.
+          Imports headlines + short excerpts, linking back to each
+          original source rather than republishing full articles. Two
+          independent sources, both configured via Vercel env vars:{" "}
+          <code>NEWS_RSS_FEEDS</code> (comma-separated RSS feed URLs) and{" "}
+          <code>NEWS_OFFICIAL_PRESS=true</code> (Pokémon&apos;s own official
+          press site, press.pokemon.com — it has no RSS, so this parses
+          its page directly).
         </p>
       </form>
 

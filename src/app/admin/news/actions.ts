@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { syncNewsArticles } from "@/lib/news-sync";
+import { syncNewsArticles, type SyncNewsResult } from "@/lib/news-sync";
 
 function slugify(title: string) {
   return title
@@ -42,7 +42,7 @@ export async function syncNewsFromFeeds() {
   const supabase = createAdminClient();
 
   let synced = 0;
-  let failures: { feedUrl: string; message: string }[] = [];
+  let failures: SyncNewsResult["failures"] = [];
   try {
     ({ synced, failures } = await syncNewsArticles(supabase));
   } catch (error) {
@@ -58,7 +58,7 @@ export async function syncNewsFromFeeds() {
   if (failures.length > 0) {
     params.set(
       "feedErrors",
-      failures.map((f) => `${f.feedUrl}: ${f.message}`).join(" | "),
+      failures.map((f) => `${f.source}: ${f.message}`).join(" | "),
     );
   }
   redirect(`/admin/news?${params.toString()}`);
