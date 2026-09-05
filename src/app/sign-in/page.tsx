@@ -46,15 +46,33 @@ export default async function SignInPage({
 
       <form action={signInWithPassword} className="space-y-3">
         <input type="hidden" name="next" value={next ?? "/account"} />
-        <Input type="email" name="email" placeholder="Email" required />
-        <Input type="password" name="password" placeholder="Password" required />
+        <Input
+          type="email"
+          name="email"
+          autoComplete="email"
+          placeholder="Email"
+          required
+        />
+        <Input
+          type="password"
+          name="password"
+          autoComplete="current-password"
+          placeholder="Password"
+          required
+        />
         <Button type="submit" className="w-full">
           Sign In
         </Button>
       </form>
 
       <form action={signInWithMagicLink} className="mt-3 flex gap-2">
-        <Input type="email" name="email" placeholder="Email for magic link" required />
+        <Input
+          type="email"
+          name="email"
+          autoComplete="email"
+          placeholder="Email for magic link"
+          required
+        />
         <Button type="submit" variant="outline">
           Send Link
         </Button>
@@ -65,9 +83,28 @@ export default async function SignInPage({
           New here? Create an account
         </summary>
         <form action={signUpWithPassword} className="mt-4 space-y-3">
-          <Input type="text" name="full_name" placeholder="Full name" required />
-          <Input type="email" name="email" placeholder="Email" required />
-          <Input type="password" name="password" placeholder="Password" required minLength={6} />
+          <Input
+            type="text"
+            name="full_name"
+            autoComplete="name"
+            placeholder="Full name"
+            required
+          />
+          <Input
+            type="email"
+            name="email"
+            autoComplete="email"
+            placeholder="Email"
+            required
+          />
+          <Input
+            type="password"
+            name="password"
+            autoComplete="new-password"
+            placeholder="Password"
+            required
+            minLength={6}
+          />
           <Button type="submit" className="w-full">
             Create Account
           </Button>
