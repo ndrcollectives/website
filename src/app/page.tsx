@@ -133,12 +133,12 @@ export default async function HomePage() {
                 className="group rounded-xl border border-border bg-surface p-4 transition-colors hover:border-accent-yellow/50"
               >
                 {article.cover_image_url && (
-                  <div className="relative mb-3 aspect-video overflow-hidden rounded-lg">
+                  <div className="relative mb-3 aspect-video overflow-hidden rounded-lg bg-surface-raised">
                     <Image
                       src={article.cover_image_url}
                       alt={article.title}
                       fill
-                      className="object-cover transition-transform group-hover:scale-105"
+                      className="object-contain transition-transform group-hover:scale-105"
                     />
                   </div>
                 )}

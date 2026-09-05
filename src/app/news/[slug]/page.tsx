@@ -76,13 +76,13 @@ export default async function ArticlePage({ params }: Props) {
       )}
 
       {article.cover_image_url && (
-        <div className="relative mt-6 aspect-video overflow-hidden rounded-xl">
+        <div className="relative mt-6 aspect-video overflow-hidden rounded-xl bg-surface-raised">
           <Image
             src={article.cover_image_url}
             alt={article.title}
             fill
             priority
-            className="object-cover"
+            className="object-contain"
           />
         </div>
       )}
