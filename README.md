@@ -49,13 +49,31 @@ npm install
 Copy `.env.example` to `.env.local` and fill in the Supabase and Stripe
 values above.
 
-### 5. Seed sample data (optional)
+### 5. Set release data
+
+News articles are admin-authored through the CMS at `/admin/news` — there's
+no external news source. Set data (names, release dates, card counts,
+artwork) is kept in sync with the [Pokémon TCG API](https://pokemontcg.io)
+instead of hand-entry:
+
+- Click **"Sync Sets from Pokémon TCG API"** on `/admin/sets` to sync
+  on demand.
+- `vercel.json` also schedules `/api/cron/sync-sets` to run daily. Set
+  `CRON_SECRET` in your environment so only Vercel Cron (or you, with the
+  same bearer token) can trigger it.
+- The public API only covers sets that have actually been announced/
+  printed with a real release date — a set that's rumored but not yet
+  confirmed still needs to be added manually on `/admin/sets` until the
+  API picks it up, at which point the next sync reconciles it (matched
+  by the API's set code).
+
+### 6. Seed sample data (optional)
 
 ```bash
 npm run seed
 ```
 
-### 6. Run the dev server
+### 7. Run the dev server
 
 ```bash
 npm run dev

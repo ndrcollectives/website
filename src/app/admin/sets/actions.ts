@@ -1,8 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { fetchAllSets } from "@/lib/pokemon-tcg";
 
 export async function createSet(formData: FormData) {
   await requireAdmin();
@@ -23,6 +25,42 @@ export async function createSet(formData: FormData) {
   revalidatePath("/admin/sets");
   revalidatePath("/sets");
   revalidatePath("/");
+}
+
+export async function syncSetsFromApi() {
+  await requireAdmin();
+  const supabase = createAdminClient();
+
+  let synced = 0;
+  try {
+    const sets = await fetchAllSets();
+
+    // Preserve any admin-entered banner_url — the public API doesn't have
+    // a banner asset, only per-set logo/symbol artwork.
+    const { error } = await supabase.from("sets").upsert(
+      sets.map((s) => ({
+        name: s.name,
+        code: s.code,
+        era: s.era,
+        release_date: s.release_date,
+        total_cards: s.total_cards,
+        logo_url: s.logo_url,
+        is_upcoming: s.is_upcoming,
+      })),
+      { onConflict: "code", ignoreDuplicates: false },
+    );
+
+    if (error) throw new Error(error.message);
+    synced = sets.length;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Sync failed";
+    redirect(`/admin/sets?error=${encodeURIComponent(message)}`);
+  }
+
+  revalidatePath("/admin/sets");
+  revalidatePath("/sets");
+  revalidatePath("/");
+  redirect(`/admin/sets?synced=${synced}`);
 }
 
 export async function deleteSet(formData: FormData) {

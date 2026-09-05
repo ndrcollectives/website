@@ -3,10 +3,15 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/utils";
-import { createSet, deleteSet } from "./actions";
+import { createSet, deleteSet, syncSetsFromApi } from "./actions";
 
-export default async function AdminSetsPage() {
+export default async function AdminSetsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ synced?: string; error?: string }>;
+}) {
   await requireAdmin();
+  const { synced, error } = await searchParams;
   const supabase = createAdminClient();
   const { data: sets } = await supabase
     .from("sets")
@@ -16,6 +21,37 @@ export default async function AdminSetsPage() {
   return (
     <div>
       <h1 className="text-2xl font-bold">Set Manager</h1>
+
+      {synced && (
+        <p className="mt-4 rounded-lg border border-accent-yellow/40 bg-accent-yellow/10 p-3 text-sm text-accent-yellow">
+          Synced {synced} sets from the Pokémon TCG API.
+        </p>
+      )}
+      {error && (
+        <p className="mt-4 rounded-lg border border-accent-red/40 bg-accent-red/10 p-3 text-sm text-accent-red">
+          {error}
+        </p>
+      )}
+
+      <form action={syncSetsFromApi} className="mt-6">
+        <Button type="submit" variant="secondary">
+          Sync Sets from Pokémon TCG API
+        </Button>
+        <p className="mt-2 text-xs text-muted">
+          Pulls official set names, release dates, card counts, and logos
+          from{" "}
+          <a
+            href="https://pokemontcg.io"
+            target="_blank"
+            rel="noreferrer"
+            className="underline"
+          >
+            pokemontcg.io
+          </a>
+          . Only covers announced/printed sets — add unannounced upcoming
+          sets manually below until the API picks them up.
+        </p>
+      </form>
 
       <form
         action={createSet}
