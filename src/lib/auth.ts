@@ -7,15 +7,30 @@ export async function getCurrentProfile(): Promise<Profile | null> {
     const supabase = await createClient();
     const {
       data: { user },
+      error: userError,
     } = await supabase.auth.getUser();
 
-    if (!user) return null;
+    if (userError) {
+      console.error("getCurrentProfile: auth.getUser() returned an error:", userError.message);
+    }
 
-    const { data: profile } = await supabase
+    if (!user) {
+      console.error("getCurrentProfile: no authenticated user on this request");
+      return null;
+    }
+
+    const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("*")
       .eq("id", user.id)
       .single();
+
+    if (profileError) {
+      console.error(
+        `getCurrentProfile: failed to load profile row for user ${user.id}:`,
+        profileError.message,
+      );
+    }
 
     return profile as Profile | null;
   } catch (error) {
