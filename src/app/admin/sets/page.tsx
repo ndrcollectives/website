@@ -1,17 +1,18 @@
+import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/utils";
-import { createSet, deleteSet, syncSetsFromApi } from "./actions";
+import { createSet, deleteSet, syncCardsForSet, syncSetsFromApi } from "./actions";
 
 export default async function AdminSetsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ synced?: string; error?: string }>;
+  searchParams: Promise<{ synced?: string; error?: string; cardsSynced?: string }>;
 }) {
   await requireAdmin();
-  const { synced, error } = await searchParams;
+  const { synced, error, cardsSynced } = await searchParams;
   const supabase = createAdminClient();
   const { data: sets } = await supabase
     .from("sets")
@@ -25,6 +26,11 @@ export default async function AdminSetsPage({
       {synced && (
         <p className="mt-4 rounded-lg border border-accent-yellow/40 bg-accent-yellow/10 p-3 text-sm text-accent-yellow">
           Synced {synced} sets from the Pokémon TCG API.
+        </p>
+      )}
+      {cardsSynced && (
+        <p className="mt-4 rounded-lg border border-accent-yellow/40 bg-accent-yellow/10 p-3 text-sm text-accent-yellow">
+          Synced {cardsSynced} cards for that set.
         </p>
       )}
       {error && (
@@ -83,13 +89,28 @@ export default async function AdminSetsPage({
               <p className="text-sm text-muted">
                 {set.era} &middot; {formatDate(set.release_date)} &middot; {set.total_cards} cards
               </p>
+              <Link
+                href={`/sets/${set.code}`}
+                className="text-sm text-accent-blue hover:underline"
+              >
+                View card list &rarr;
+              </Link>
             </div>
-            <form action={deleteSet}>
-              <input type="hidden" name="id" value={set.id} />
-              <Button size="sm" variant="destructive" type="submit">
-                Delete
-              </Button>
-            </form>
+            <div className="flex items-center gap-2">
+              <form action={syncCardsForSet}>
+                <input type="hidden" name="set_id" value={set.id} />
+                <input type="hidden" name="set_code" value={set.code} />
+                <Button size="sm" variant="secondary" type="submit">
+                  Sync Cards
+                </Button>
+              </form>
+              <form action={deleteSet}>
+                <input type="hidden" name="id" value={set.id} />
+                <Button size="sm" variant="destructive" type="submit">
+                  Delete
+                </Button>
+              </form>
+            </div>
           </div>
         ))}
       </div>

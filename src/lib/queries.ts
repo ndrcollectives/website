@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { isNextControlFlowError } from "@/lib/supabase/errors";
-import type { NewsArticle, Product, Set } from "@/lib/types";
+import type { Card, NewsArticle, Product, Set } from "@/lib/types";
 
 // Public read paths (homepage, shop, news) must never 500 the storefront
 // just because Supabase isn't configured yet or a query fails — they
@@ -37,6 +37,30 @@ export async function getAllSets(): Promise<Set[]> {
       .select("*")
       .order("release_date", { ascending: false });
     return (data as Set[]) ?? [];
+  }, []);
+}
+
+export async function getSetByCode(code: string): Promise<Set | null> {
+  return safe(async () => {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("sets")
+      .select("*")
+      .eq("code", code)
+      .single();
+    return data as Set | null;
+  }, null);
+}
+
+export async function getCardsForSet(setId: string): Promise<Card[]> {
+  return safe(async () => {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("cards")
+      .select("*")
+      .eq("set_id", setId)
+      .order("number", { ascending: true });
+    return (data as Card[]) ?? [];
   }, []);
 }
 

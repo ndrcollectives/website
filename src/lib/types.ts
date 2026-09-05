@@ -21,6 +21,20 @@ export type Set = {
   created_at: string;
 };
 
+export type Card = {
+  id: string;
+  set_id: string;
+  api_id: string;
+  name: string;
+  number: string;
+  rarity: string | null;
+  supertype: string | null;
+  image_small: string | null;
+  image_large: string | null;
+  artist: string | null;
+  created_at: string;
+};
+
 export type ProductType =
   | "single"
   | "sealed_box"

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { fetchAllSets } from "@/lib/pokemon-tcg";
+import { fetchAllSets, fetchCardsForSet } from "@/lib/pokemon-tcg";
 
 export async function createSet(formData: FormData) {
   await requireAdmin();
@@ -61,6 +61,46 @@ export async function syncSetsFromApi() {
   revalidatePath("/sets");
   revalidatePath("/");
   redirect(`/admin/sets?synced=${synced}`);
+}
+
+export async function syncCardsForSet(formData: FormData) {
+  await requireAdmin();
+  const supabase = createAdminClient();
+
+  const setId = String(formData.get("set_id"));
+  const setCode = String(formData.get("set_code"));
+
+  let synced = 0;
+  try {
+    const cards = await fetchCardsForSet(setCode);
+
+    if (cards.length > 0) {
+      const { error } = await supabase.from("cards").upsert(
+        cards.map((c) => ({
+          set_id: setId,
+          api_id: c.api_id,
+          name: c.name,
+          number: c.number,
+          rarity: c.rarity,
+          supertype: c.supertype,
+          image_small: c.image_small,
+          image_large: c.image_large,
+          artist: c.artist,
+        })),
+        { onConflict: "api_id", ignoreDuplicates: false },
+      );
+
+      if (error) throw new Error(error.message);
+    }
+    synced = cards.length;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Sync failed";
+    redirect(`/admin/sets?error=${encodeURIComponent(message)}`);
+  }
+
+  revalidatePath("/admin/sets");
+  revalidatePath(`/sets/${setCode}`);
+  redirect(`/admin/sets?cardsSynced=${synced}`);
 }
 
 export async function deleteSet(formData: FormData) {

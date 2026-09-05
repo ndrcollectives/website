@@ -89,12 +89,20 @@ function SetSection({
 
             {showCountdown && <CountdownTimer releaseDate={set.release_date} />}
 
-            <Link
-              href={`/shop?set=${set.id}`}
-              className="mt-1 text-sm font-medium text-accent-blue hover:underline"
-            >
-              Shop this set &rarr;
-            </Link>
+            <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+              <Link
+                href={`/sets/${set.code}`}
+                className="font-medium text-accent-blue hover:underline"
+              >
+                View card list &rarr;
+              </Link>
+              <Link
+                href={`/shop?set=${set.id}`}
+                className="font-medium text-accent-blue hover:underline"
+              >
+                Shop this set &rarr;
+              </Link>
+            </div>
           </div>
         ))}
       </div>

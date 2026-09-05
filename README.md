@@ -69,6 +69,11 @@ the [Pokémon TCG API](https://pokemontcg.io) instead of hand-entry:
   confirmed still needs to be added manually on `/admin/sets` until the
   API picks it up, at which point the next sync reconciles it (matched
   by the API's set code).
+- Each set also has its own **card checklist with official artwork**,
+  synced separately (it's a lot of data — hundreds of cards per set —
+  so it's not pulled automatically with the set itself). On `/admin/sets`,
+  click **"Sync Cards"** next to a set to pull every card in it from the
+  same API, then view the result at `/sets/<set-code>`.
 
 ### 6. News: hand-written and/or automated
 
