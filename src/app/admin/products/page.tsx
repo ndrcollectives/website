@@ -19,6 +19,8 @@ type SearchParams = {
   skippedNoPrice?: string;
   skippedNoSet?: string;
   backfilled?: string;
+  noNumberMatch?: string;
+  unsyncedSets?: string;
 };
 
 export default async function AdminProductsPage({
@@ -27,8 +29,16 @@ export default async function AdminProductsPage({
   searchParams: Promise<SearchParams>;
 }) {
   await requireAdmin();
-  const { imported, importError, skippedDuplicate, skippedNoPrice, skippedNoSet, backfilled } =
-    await searchParams;
+  const {
+    imported,
+    importError,
+    skippedDuplicate,
+    skippedNoPrice,
+    skippedNoSet,
+    backfilled,
+    noNumberMatch,
+    unsyncedSets,
+  } = await searchParams;
   const supabase = createAdminClient();
 
   const [{ data: products }, { data: sets }] = await Promise.all([
@@ -66,11 +76,26 @@ export default async function AdminProductsPage({
         </p>
       )}
       {backfilled && (
-        <p className="mt-4 rounded-lg border border-accent-yellow/40 bg-accent-yellow/10 p-3 text-sm text-accent-yellow">
-          {backfilled === "0"
-            ? "No listings needed fixing — everything with a matching card already has an image."
-            : `Added an image to ${backfilled} listing${backfilled === "1" ? "" : "s"} from the synced card catalog.`}
-        </p>
+        <div className="mt-4 rounded-lg border border-accent-yellow/40 bg-accent-yellow/10 p-3 text-sm text-accent-yellow">
+          <p>
+            {backfilled === "0"
+              ? "No listings needed fixing — everything with a matching card already has an image."
+              : `Added an image to ${backfilled} listing${backfilled === "1" ? "" : "s"} from the synced card catalog.`}
+          </p>
+          {unsyncedSets && (
+            <p className="mt-1 text-xs">
+              Still missing: these sets have no cards synced yet — sync cards
+              for them on the Sets page, then run this again: {unsyncedSets}.
+            </p>
+          )}
+          {noNumberMatch && (
+            <p className="mt-1 text-xs">
+              Still missing: {noNumberMatch} listing{noNumberMatch === "1" ? "" : "s"} whose
+              card number wasn&apos;t found in an otherwise-synced set (often
+              secret rares/promos numbered past the set&apos;s printed total).
+            </p>
+          )}
+        </div>
       )}
 
       <form action={backfillProductImages} className="mt-6">

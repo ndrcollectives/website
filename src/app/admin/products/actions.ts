@@ -164,18 +164,30 @@ export async function backfillProductImages() {
     .select("set_id, number, image_large, image_small")
     .in("set_id", setIds);
 
+  const cardsPerSet = new Map<string, number>();
+  for (const c of cardsData ?? []) {
+    cardsPerSet.set(c.set_id, (cardsPerSet.get(c.set_id) ?? 0) + 1);
+  }
   const cardImages = new Map(
     (cardsData ?? [])
       .filter((c) => c.image_large || c.image_small)
       .map((c) => [`${c.set_id}::${c.number}`, (c.image_large ?? c.image_small) as string]),
   );
 
-  const matched = targets
-    .map((p) => ({
-      id: p.id as string,
-      image: cardImages.get(`${p.set_id}::${normalizeCardNumber(p.card_number as string)}`),
-    }))
-    .filter((p): p is { id: string; image: string } => !!p.image);
+  const matched: { id: string; image: string }[] = [];
+  const unmatchedNoCardsSetIds = new Set<string>();
+  let unmatchedNumberNotFound = 0;
+
+  for (const p of targets) {
+    const image = cardImages.get(`${p.set_id}::${normalizeCardNumber(p.card_number as string)}`);
+    if (image) {
+      matched.push({ id: p.id as string, image });
+    } else if (!cardsPerSet.get(p.set_id as string)) {
+      unmatchedNoCardsSetIds.add(p.set_id as string);
+    } else {
+      unmatchedNumberNotFound += 1;
+    }
+  }
 
   // Update in bounded-concurrency batches rather than one at a time —
   // each row gets a different image, so this can't be a single bulk query.
@@ -191,7 +203,22 @@ export async function backfillProductImages() {
 
   revalidatePath("/admin/products");
   revalidatePath("/shop");
-  redirect(`/admin/products?backfilled=${updated}`);
+
+  const params = new URLSearchParams({ backfilled: String(updated) });
+  if (unmatchedNumberNotFound) {
+    params.set("noNumberMatch", String(unmatchedNumberNotFound));
+  }
+  if (unmatchedNoCardsSetIds.size > 0) {
+    const { data: unsyncedSets } = await supabase
+      .from("sets")
+      .select("name")
+      .in("id", Array.from(unmatchedNoCardsSetIds));
+    params.set(
+      "unsyncedSets",
+      (unsyncedSets ?? []).map((s) => s.name).join(", "),
+    );
+  }
+  redirect(`/admin/products?${params.toString()}`);
 }
 
 export async function deleteProduct(formData: FormData) {
