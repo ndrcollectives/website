@@ -46,7 +46,7 @@ export function SettingsMenu() {
       </button>
 
       {open && (
-        <div className="absolute right-0 z-40 mt-2 w-60 rounded-lg border border-border bg-surface-raised p-3 shadow-lg">
+        <div className="absolute right-0 z-40 mt-2 w-60 rounded-lg border border-border bg-surface-raised/80 p-3 shadow-lg backdrop-blur-md">
           <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted">
             {dict.language.label}
           </p>
