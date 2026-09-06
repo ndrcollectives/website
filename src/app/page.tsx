@@ -7,6 +7,7 @@ import { ProductCard } from "@/components/product-card";
 import { CountdownTimer } from "@/components/countdown-timer";
 import { RecentAdditionsTicker } from "@/components/recent-additions-ticker";
 import {
+  getFavoriteProductIds,
   getFeaturedProducts,
   getPublishedArticles,
   getRecentProducts,
@@ -17,12 +18,13 @@ import { getLocale } from "@/lib/i18n/get-locale";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 
 export default async function HomePage() {
-  const [sets, products, articles, recentProducts, locale] = await Promise.all([
+  const [sets, products, articles, recentProducts, locale, favoriteIds] = await Promise.all([
     getUpcomingSets(4),
     getFeaturedProducts(8),
     getPublishedArticles(undefined, 3),
     getRecentProducts(10),
     getLocale(),
+    getFavoriteProductIds(),
   ]);
   const dict = getDictionary(locale);
 
@@ -105,7 +107,11 @@ export default async function HomePage() {
           </div>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard
+                key={product.id}
+                product={product}
+                favorited={favoriteIds.has(product.id)}
+              />
             ))}
           </div>
         </section>

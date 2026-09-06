@@ -7,15 +7,27 @@ import { Badge } from "@/components/ui/badge";
 import { RarityBadge } from "@/components/ui/rarity-badge";
 import { useCart } from "@/components/cart/cart-context";
 import { PriceTag } from "@/components/price-tag";
+import { FavoriteButton } from "@/components/favorite-button";
 import { formatPrice } from "@/lib/utils";
 import type { Product } from "@/lib/types";
 
-export function ProductCard({ product }: { product: Product }) {
+export function ProductCard({
+  product,
+  favorited = false,
+}: {
+  product: Product;
+  favorited?: boolean;
+}) {
   const { addItem } = useCart();
   const image = product.images?.[0] ?? null;
 
   return (
     <div className="group relative flex flex-col overflow-hidden rounded-xl border border-border bg-surface transition-colors hover:border-accent-yellow/50">
+      <FavoriteButton
+        productId={product.id}
+        initialFavorited={favorited}
+        className="absolute right-2 top-2 z-10"
+      />
       <Link href={`/shop/${product.slug}`} className="holo-card relative block aspect-[3/4] bg-surface-raised">
         {image ? (
           <Image

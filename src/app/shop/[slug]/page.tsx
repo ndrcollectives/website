@@ -5,7 +5,8 @@ import { RarityBadge } from "@/components/ui/rarity-badge";
 import { HoloCard } from "@/components/holo-card";
 import { AddToCartPanel } from "@/components/add-to-cart-panel";
 import { PriceTag } from "@/components/price-tag";
-import { getProductBySlug } from "@/lib/queries";
+import { FavoriteButton } from "@/components/favorite-button";
+import { getFavoriteProductIds, getProductBySlug } from "@/lib/queries";
 import { formatPrice } from "@/lib/utils";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -28,7 +29,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProductDetailPage({ params }: Props) {
   const { slug } = await params;
-  const product = await getProductBySlug(slug);
+  const [product, favoriteIds] = await Promise.all([
+    getProductBySlug(slug),
+    getFavoriteProductIds(),
+  ]);
   if (!product) notFound();
 
   const jsonLd = {
@@ -108,7 +112,14 @@ export default async function ProductDetailPage({ params }: Props) {
         </div>
 
         <div>
-          {product.rarity && <RarityBadge rarity={product.rarity} />}
+          <div className="flex items-start justify-between gap-3">
+            {product.rarity ? <RarityBadge rarity={product.rarity} /> : <span />}
+            <FavoriteButton
+              productId={product.id}
+              initialFavorited={favoriteIds.has(product.id)}
+              className="border border-border"
+            />
+          </div>
           <h1 className="mt-3 text-3xl font-extrabold leading-tight">
             {product.title}
           </h1>

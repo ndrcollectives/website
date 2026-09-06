@@ -19,6 +19,7 @@ const en = {
     settings: "Settings",
     openCart: "Open cart",
     toggleMenu: "Toggle menu",
+    favorites: "Favorites",
   },
   footer: {
     tagline:
@@ -32,6 +33,7 @@ const en = {
     releaseCalendar: "Release Calendar",
     newsSpoilers: "News & Spoilers",
     trackOrder: "Track Order",
+    faq: "FAQ",
     disclaimer:
       "Not affiliated with The Pokémon Company, Nintendo, Creatures, or Game Freak.",
   },
@@ -97,6 +99,19 @@ const en = {
     checkout: "Checkout with Stripe",
     redirecting: "Redirecting...",
   },
+  favorites: {
+    title: "Favorites",
+    add: "Add to favorites",
+    remove: "Remove from favorites",
+    emptyTitle: "No favorites yet",
+    emptyBody: "Tap the heart on any card or product to save it here.",
+    browseShop: "Browse Shop",
+    back: "Back to Account",
+  },
+  faq: {
+    title: "Frequently Asked Questions",
+    subtitle: "Answers to the questions we get asked most.",
+  },
   language: {
     label: "Language",
   },
@@ -154,6 +169,7 @@ const nl: Dictionary = {
     settings: "Instellingen",
     openCart: "Winkelwagen openen",
     toggleMenu: "Menu wisselen",
+    favorites: "Favorieten",
   },
   footer: {
     tagline:
@@ -167,6 +183,7 @@ const nl: Dictionary = {
     releaseCalendar: "Releasekalender",
     newsSpoilers: "Nieuws & Spoilers",
     trackOrder: "Bestelling volgen",
+    faq: "Veelgestelde vragen",
     disclaimer:
       "Niet verbonden met The Pokémon Company, Nintendo, Creatures of Game Freak.",
   },
@@ -231,6 +248,19 @@ const nl: Dictionary = {
     shippingNote: "Verzendkosten & belasting worden bij het afrekenen berekend.",
     checkout: "Afrekenen met Stripe",
     redirecting: "Doorverwijzen...",
+  },
+  favorites: {
+    title: "Favorieten",
+    add: "Toevoegen aan favorieten",
+    remove: "Verwijderen uit favorieten",
+    emptyTitle: "Nog geen favorieten",
+    emptyBody: "Tik op het hartje bij een kaart of product om het hier op te slaan.",
+    browseShop: "Naar de shop",
+    back: "Terug naar Account",
+  },
+  faq: {
+    title: "Veelgestelde vragen",
+    subtitle: "Antwoorden op de vragen die we het vaakst krijgen.",
   },
   language: {
     label: "Taal",

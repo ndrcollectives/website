@@ -279,6 +279,41 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
   }, null);
 }
 
+// The current signed-in user's favorited product ids, for marking hearts
+// filled in product grids — empty (not an error) when signed out.
+// ReadonlySet, not Set, because `Set` (the Pokémon TCG entity type) is
+// already imported into this module's type namespace, shadowing the
+// builtin generic — ReadonlySet is a distinct global identifier.
+export async function getFavoriteProductIds(): Promise<ReadonlySet<string>> {
+  return safe(async () => {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return new Set<string>();
+
+    const { data } = await supabase
+      .from("favorites")
+      .select("product_id")
+      .eq("user_id", user.id);
+    return new Set((data ?? []).map((f) => f.product_id as string));
+  }, new Set<string>());
+}
+
+export async function getFavoriteProducts(userId: string): Promise<Product[]> {
+  return safe(async () => {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("favorites")
+      .select("product:products(*, set:sets(*))")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
+    return ((data ?? []) as unknown as { product: Product | null }[])
+      .map((f) => f.product)
+      .filter((p): p is Product => p !== null);
+  }, []);
+}
+
 export async function getPublishedArticles(
   category?: string,
   limit = 20,

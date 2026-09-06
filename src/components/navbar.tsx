@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   ChevronRight,
+  Heart,
   Menu,
   Newspaper,
   Search,
@@ -198,6 +199,13 @@ export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
 
         <div className="hidden shrink-0 items-center gap-1 md:flex">
           <Link
+            href={isSignedIn ? "/account/favorites" : "/sign-in?next=/account/favorites"}
+            className="rounded-lg p-2 hover:bg-surface-raised"
+            aria-label={dict.nav.favorites}
+          >
+            <Heart className="h-5 w-5" />
+          </Link>
+          <Link
             href={isSignedIn ? "/account" : "/sign-in"}
             className="rounded-lg p-2 hover:bg-surface-raised"
             aria-label={dict.nav.account}
@@ -310,6 +318,15 @@ export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
             {isSignedIn ? dict.nav.myAccount : dict.nav.signIn}
           </span>
           <ChevronRight className="ml-auto h-4 w-4 text-muted" />
+        </Link>
+
+        <Link
+          href={isSignedIn ? "/account/favorites" : "/sign-in?next=/account/favorites"}
+          onClick={() => setMobileOpen(false)}
+          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-surface-raised"
+        >
+          <Heart className="h-4 w-4 text-muted" />
+          {dict.nav.favorites}
         </Link>
 
         <nav className="flex flex-col gap-1">
