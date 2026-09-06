@@ -192,7 +192,7 @@ const nl: Dictionary = {
   },
   home: {
     heroTitlePrefix: "Jaag op de",
-    heroTitleHighlight: "volgende grote pull",
+    heroTitleHighlight: "volgende grote hit",
     heroSubtitle:
       "Het laatste Pokémon TCG-nieuws, een actuele releasekalender en een zorgvuldig samengestelde marktplaats voor losse kaarten, verzegelde producten en graded slabs.",
     shopLatestCards: "Bekijk nieuwste kaarten",
