@@ -24,15 +24,6 @@ export default async function HomePage() {
       {/* Hero */}
       <section className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-surface via-surface to-accent-purple/10 p-8 md:p-14">
         <div className="max-w-2xl">
-          {articles[0] && (
-            <Link
-              href={`/news/${articles[0].slug}`}
-              className="mb-4 inline-flex items-center gap-2 rounded-full border border-border bg-surface-raised px-3 py-1 text-xs font-medium hover:border-accent-yellow/60"
-            >
-              <Badge variant="yellow">Latest</Badge>
-              {articles[0].title}
-            </Link>
-          )}
           <h1 className="text-4xl font-extrabold leading-tight tracking-tight md:text-6xl">
             Chase the{" "}
             <span className="bg-gradient-to-r from-accent-yellow via-accent-red to-accent-purple bg-clip-text text-transparent">

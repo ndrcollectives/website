@@ -33,7 +33,7 @@ export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4">
         <Link href="/" className="flex items-center gap-2 font-bold">
           <Logomark />
-          <span className="hidden sm:inline">NDR Collectives</span>
+          <span className="text-sm sm:text-base">NDR Collectives</span>
         </Link>
 
         <nav className="hidden items-center gap-6 md:flex">

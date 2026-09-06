@@ -1,48 +1,33 @@
+import { useId } from "react";
 import { cn } from "@/lib/utils";
 
-// A fanned trio of cards, standing in for a pack/hand of TCG cards —
-// distinctive to a card marketplace rather than a generic sparkle/star.
+// Poké Ball mark, colored with the same yellow -> red -> purple gradient
+// used on the homepage hero headline (from-accent-yellow via-accent-red
+// to-accent-purple) instead of the ball's usual red/white.
 export function Logomark({ className }: { className?: string }) {
+  const gradientId = useId();
+
   return (
     <svg
       viewBox="0 0 24 24"
-      fill="none"
       className={cn("h-5 w-5", className)}
       aria-hidden="true"
     >
-      <rect
-        x="3.5"
-        y="4.5"
-        width="9"
-        height="13"
-        rx="1.5"
-        transform="rotate(-16 8 11)"
-        fill="#38bdf8"
-        fillOpacity="0.9"
-      />
-      <rect
-        x="7.5"
-        y="4"
-        width="9"
-        height="13"
-        rx="1.5"
-        fill="#a855f7"
-        fillOpacity="0.9"
-      />
-      <rect
-        x="11.5"
-        y="4.5"
-        width="9"
-        height="13"
-        rx="1.5"
-        transform="rotate(16 16 11)"
-        fill="#facc15"
-      />
-      <path
-        d="M11 8.3l.9 1.85 2.05.3-1.48 1.44.35 2.03L11 12.9l-1.82.92.35-2.03-1.48-1.44 2.05-.3L11 8.3z"
-        fill="#0b0f19"
-        fillOpacity="0.55"
-      />
+      <defs>
+        <linearGradient id={gradientId} x1="2" y1="3" x2="22" y2="21" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#facc15" />
+          <stop offset="50%" stopColor="#ef4444" />
+          <stop offset="100%" stopColor="#a855f7" />
+        </linearGradient>
+      </defs>
+
+      <circle cx="12" cy="12" r="9.25" fill={`url(#${gradientId})`} />
+      <path d="M2.75 12a9.25 9.25 0 0 0 18.5 0z" fill="#0b0f19" />
+      <rect x="2.75" y="10.9" width="18.5" height="2.2" fill="#0b0f19" />
+      <circle cx="12" cy="12" r="9.25" fill="none" stroke="#0b0f19" strokeWidth="1.1" />
+
+      <circle cx="12" cy="12" r="3" fill="#0b0f19" />
+      <circle cx="12" cy="12" r="2.1" fill={`url(#${gradientId})`} />
     </svg>
   );
 }
