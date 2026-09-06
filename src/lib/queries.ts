@@ -58,9 +58,13 @@ export async function getCardsForSet(setId: string): Promise<Card[]> {
     const { data } = await supabase
       .from("cards")
       .select("*")
-      .eq("set_id", setId)
-      .order("number", { ascending: true });
-    return (data as Card[]) ?? [];
+      .eq("set_id", setId);
+    const cards = (data as Card[]) ?? [];
+    // `number` is text (e.g. "4", "004/102", "TG01"), so a plain DB text
+    // sort puts "10" before "2" — sort numerically here instead.
+    return cards.sort((a, b) =>
+      a.number.localeCompare(b.number, undefined, { numeric: true }),
+    );
   }, []);
 }
 
@@ -109,14 +113,25 @@ export async function getProducts(filters: ShopFilters = {}): Promise<Product[]>
         query = query.order("price_cents", { ascending: false });
         break;
       case "card_number":
-        query = query.order("card_number", { ascending: true });
         break;
       default:
         query = query.order("created_at", { ascending: false });
     }
 
     const { data } = await query;
-    return (data as Product[]) ?? [];
+    const products = (data as Product[]) ?? [];
+
+    // `card_number` is text (e.g. "4", "004/102"), so a plain DB text sort
+    // puts "10" before "2" — sort numerically here instead.
+    if (filters.sort === "card_number") {
+      products.sort((a, b) =>
+        (a.card_number ?? "").localeCompare(b.card_number ?? "", undefined, {
+          numeric: true,
+        }),
+      );
+    }
+
+    return products;
   }, []);
 }
 
