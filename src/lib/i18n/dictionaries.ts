@@ -1,6 +1,9 @@
 export const locales = ["en", "nl"] as const;
 export type Locale = (typeof locales)[number];
-export const defaultLocale: Locale = "en";
+// The Netherlands is the initial market, so first-time visitors land in
+// Dutch; an explicit switch (footer or account preferences) overrides this
+// via the ndr-lang cookie.
+export const defaultLocale: Locale = "nl";
 export const LANGUAGE_COOKIE = "ndr-lang";
 
 const en = {
@@ -99,6 +102,37 @@ const en = {
     light: "Light",
     dark: "Dark",
     toggle: "Toggle light/dark theme",
+  },
+  cookies: {
+    bannerTitle: "We use cookies",
+    bannerBody:
+      "We use strictly necessary cookies to keep you signed in and your cart working, and optional preference cookies to remember your language and theme choice. See our cookie settings for details.",
+    accept: "Accept all",
+    reject: "Reject non-essential",
+    manage: "Cookie settings",
+    settingsTitle: "Cookie Settings",
+    settingsIntro:
+      "Here's exactly what we store and why, so you can decide what to allow.",
+    alwaysOn: "Always on",
+    necessaryTitle: "Strictly necessary",
+    necessaryBody:
+      "Keeps you signed in and remembers what's in your cart while you shop and check out. These can't be switched off — the site can't function without them.",
+    preferencesTitle: "Preferences",
+    preferencesBody:
+      "Remembers your language and light/dark theme choice between visits. If you reject these, the site still works and switching language/theme still works for the rest of this visit, but nothing is remembered once you close the browser or come back later — it resets to the default (Dutch, dark).",
+    statusAccepted: "You've accepted preference cookies.",
+    statusRejected: "You've rejected preference cookies — your language and theme choice won't be remembered.",
+    statusUndecided: "You haven't made a choice yet.",
+    acceptPreferences: "Accept preferences",
+    rejectPreferences: "Reject preferences",
+  },
+  accountPreferences: {
+    title: "Website Preferences",
+    back: "Back to Account",
+    languageTitle: "Language",
+    languageBody: "Choose the language used across the site.",
+    themeTitle: "Appearance",
+    themeBody: "Choose how the site looks.",
   },
 };
 
@@ -201,6 +235,37 @@ const nl: Dictionary = {
     light: "Licht",
     dark: "Donker",
     toggle: "Licht/donker thema wisselen",
+  },
+  cookies: {
+    bannerTitle: "Wij gebruiken cookies",
+    bannerBody:
+      "We gebruiken strikt noodzakelijke cookies om je ingelogd te houden en je winkelwagen te laten werken, en optionele voorkeurscookies om je taal- en themakeuze te onthouden. Bekijk onze cookie-instellingen voor details.",
+    accept: "Alles accepteren",
+    reject: "Niet-essentiële weigeren",
+    manage: "Cookie-instellingen",
+    settingsTitle: "Cookie-instellingen",
+    settingsIntro:
+      "Hier zie je precies wat we opslaan en waarom, zodat je zelf kunt kiezen wat je toestaat.",
+    alwaysOn: "Altijd aan",
+    necessaryTitle: "Strikt noodzakelijk",
+    necessaryBody:
+      "Houdt je ingelogd en onthoudt wat er in je winkelwagen zit tijdens het winkelen en afrekenen. Deze kunnen niet worden uitgeschakeld — zonder deze werkt de site niet.",
+    preferencesTitle: "Voorkeuren",
+    preferencesBody:
+      "Onthoudt je taal- en licht/donker-themakeuze tussen bezoeken. Als je deze weigert, blijft de site werken en kun je de rest van dit bezoek nog gewoon wisselen, maar zodra je de browser sluit of later terugkomt, wordt niets onthouden en valt alles terug op de standaardinstelling (Nederlands, donker).",
+    statusAccepted: "Je hebt voorkeurscookies geaccepteerd.",
+    statusRejected: "Je hebt voorkeurscookies geweigerd — je taal- en themakeuze worden niet onthouden.",
+    statusUndecided: "Je hebt nog geen keuze gemaakt.",
+    acceptPreferences: "Voorkeuren accepteren",
+    rejectPreferences: "Voorkeuren weigeren",
+  },
+  accountPreferences: {
+    title: "Websitevoorkeuren",
+    back: "Terug naar Account",
+    languageTitle: "Taal",
+    languageBody: "Kies de taal die op de hele site wordt gebruikt.",
+    themeTitle: "Weergave",
+    themeBody: "Kies hoe de site eruitziet.",
   },
 };
 

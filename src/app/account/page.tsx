@@ -3,14 +3,17 @@ import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { getCurrentProfile } from "@/lib/auth";
 import { signOut } from "@/app/auth/actions";
+import { getLocale } from "@/lib/i18n/get-locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 
 export default async function AccountPage() {
-  const profile = await getCurrentProfile();
+  const [profile, locale] = await Promise.all([getCurrentProfile(), getLocale()]);
   if (!profile) redirect("/sign-in?next=/account");
+  const dict = getDictionary(locale);
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-12">
-      <h1 className="text-3xl font-extrabold">My Account</h1>
+      <h1 className="text-3xl font-extrabold">{dict.nav.myAccount}</h1>
 
       <div className="mt-6 rounded-xl border border-border bg-surface p-6">
         <p className="text-sm text-muted">Name</p>
@@ -26,9 +29,12 @@ export default async function AccountPage() {
         )}
       </div>
 
-      <div className="mt-6 flex gap-3">
+      <div className="mt-6 flex flex-wrap gap-3">
         <Link href="/account/orders">
           <Button variant="secondary">Order History</Button>
+        </Link>
+        <Link href="/account/preferences">
+          <Button variant="secondary">{dict.accountPreferences.title}</Button>
         </Link>
         <form action={signOut}>
           <Button variant="outline" type="submit">

@@ -42,6 +42,7 @@ export function Footer() {
               <li><Link href="/sets" className="hover:text-accent-yellow">{dict.footer.releaseCalendar}</Link></li>
               <li><Link href="/news" className="hover:text-accent-yellow">{dict.footer.newsSpoilers}</Link></li>
               <li><Link href="/account/orders" className="hover:text-accent-yellow">{dict.footer.trackOrder}</Link></li>
+              <li><Link href="/cookies" className="hover:text-accent-yellow">{dict.cookies.manage}</Link></li>
             </ul>
           </div>
 

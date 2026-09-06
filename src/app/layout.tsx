@@ -10,6 +10,9 @@ import { createClient } from "@/lib/supabase/server";
 import { isNextControlFlowError } from "@/lib/supabase/errors";
 import { LanguageProvider } from "@/lib/i18n/language-context";
 import { getLocale } from "@/lib/i18n/get-locale";
+import { ConsentProvider } from "@/lib/consent-context";
+import { getConsent } from "@/lib/get-consent";
+import { CookieBanner } from "@/components/cookie-banner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,7 +44,7 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const locale = await getLocale();
+  const [locale, consent] = await Promise.all([getLocale(), getConsent()]);
   let isSignedIn = false;
   try {
     const supabase = await createClient();
@@ -67,14 +70,17 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
             if (t === "light") document.documentElement.dataset.theme = "light";
           } catch (e) {}`}
         </Script>
-        <LanguageProvider initialLocale={locale}>
-          <CartProvider>
-            <Navbar isSignedIn={isSignedIn} />
-            <main className="flex-1">{children}</main>
-            <Footer />
-            <CartDrawer />
-          </CartProvider>
-        </LanguageProvider>
+        <ConsentProvider initialStatus={consent}>
+          <LanguageProvider initialLocale={locale}>
+            <CartProvider>
+              <Navbar isSignedIn={isSignedIn} />
+              <main className="flex-1">{children}</main>
+              <Footer />
+              <CartDrawer />
+              <CookieBanner />
+            </CartProvider>
+          </LanguageProvider>
+        </ConsentProvider>
       </body>
     </html>
   );
