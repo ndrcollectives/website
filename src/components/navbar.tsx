@@ -1,9 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Menu, Search, ShoppingCart, User, X } from "lucide-react";
+import {
+  ChevronRight,
+  Menu,
+  Newspaper,
+  Search,
+  ShoppingBag,
+  ShoppingCart,
+  Layers,
+  User,
+  X,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useCart } from "@/components/cart/cart-context";
 import { Input } from "@/components/ui/input";
 import { Logomark } from "@/components/logomark";
@@ -93,12 +104,13 @@ export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
   const router = useRouter();
+  const pathname = usePathname();
   const suggestions = useCardSuggestions(query);
 
   const NAV_LINKS = [
-    { href: "/shop", label: dict.nav.shop },
-    { href: "/sets", label: dict.nav.sets },
-    { href: "/news", label: dict.nav.news },
+    { href: "/shop", label: dict.nav.shop, icon: ShoppingBag },
+    { href: "/sets", label: dict.nav.sets, icon: Layers },
+    { href: "/news", label: dict.nav.news, icon: Newspaper },
   ];
 
   function handleSearch(e: FormEvent) {
@@ -243,27 +255,44 @@ export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
         </button>
       </div>
 
-      <nav className="flex flex-col p-2">
-        {NAV_LINKS.map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            onClick={() => setMobileOpen(false)}
-            className="rounded-lg px-3 py-3 text-base font-medium hover:bg-surface-raised"
-          >
-            {link.label}
-          </Link>
-        ))}
-        <div className="my-2 border-t border-border" />
+      <div className="flex flex-col gap-4 overflow-y-auto p-3">
         <Link
           href={isSignedIn ? "/account" : "/sign-in"}
           onClick={() => setMobileOpen(false)}
-          className="flex items-center gap-2 rounded-lg px-3 py-3 text-base font-medium hover:bg-surface-raised"
+          className="flex items-center gap-3 rounded-xl bg-surface-raised px-3 py-3 hover:bg-surface-raised/70"
         >
-          <User className="h-4 w-4" />
-          {isSignedIn ? dict.nav.myAccount : dict.nav.signIn}
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-background">
+            <User className="h-4 w-4" />
+          </span>
+          <span className="text-sm font-semibold">
+            {isSignedIn ? dict.nav.myAccount : dict.nav.signIn}
+          </span>
+          <ChevronRight className="ml-auto h-4 w-4 text-muted" />
         </Link>
-      </nav>
+
+        <nav className="flex flex-col gap-1">
+          <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted">
+            {dict.footer.exploreHeading}
+          </p>
+          {NAV_LINKS.map((link) => {
+            const active = pathname === link.href || pathname?.startsWith(`${link.href}/`);
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setMobileOpen(false)}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-surface-raised",
+                  active && "bg-surface-raised",
+                )}
+              >
+                <link.icon className="h-4 w-4 text-muted" />
+                {link.label}
+              </Link>
+            );
+          })}
+        </nav>
+      </div>
     </aside>
     </>
   );
