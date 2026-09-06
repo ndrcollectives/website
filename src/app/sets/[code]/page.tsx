@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { ShoppingCart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { getCardsForSet, getSetByCode } from "@/lib/queries";
 import { formatDate } from "@/lib/utils";
@@ -72,8 +73,17 @@ export default async function SetCardListPage({ params }: Props) {
           {cards.map((card) => (
             <div
               key={card.id}
-              className="flex flex-col overflow-hidden rounded-xl border border-border bg-surface p-3"
+              className="relative flex flex-col overflow-hidden rounded-xl border border-border bg-surface p-3"
             >
+              <Link
+                href={`/shop?set=${set.id}&search=${encodeURIComponent(card.name)}`}
+                className="absolute right-2 top-2 z-10 rounded-lg bg-background/80 p-1.5 text-muted backdrop-blur transition-colors hover:text-accent-yellow"
+                aria-label={`Shop for ${card.name}`}
+                title={`Shop for ${card.name}`}
+              >
+                <ShoppingCart className="h-4 w-4" />
+              </Link>
+
               <div className="flex aspect-[5/7] items-center justify-center overflow-hidden rounded-lg bg-surface-raised">
                 {card.image_large || card.image_small ? (
                   // eslint-disable-next-line @next/next/no-img-element

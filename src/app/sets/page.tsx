@@ -1,7 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
-import { ShoppingCart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { CountdownTimer } from "@/components/countdown-timer";
 import { getAllSets } from "@/lib/queries";
@@ -60,18 +59,9 @@ function SetSection({
           <div
             key={set.id}
             id={set.code}
-            className="relative flex flex-col gap-3 rounded-xl border border-border bg-surface p-4"
+            className="flex flex-col gap-3 rounded-xl border border-border bg-surface p-4"
           >
-            <Link
-              href={`/shop?set=${set.id}`}
-              className="absolute right-3 top-3 rounded-lg p-2 text-muted transition-colors hover:bg-surface-raised hover:text-accent-yellow"
-              aria-label={`Shop ${set.name}`}
-              title={`Shop ${set.name}`}
-            >
-              <ShoppingCart className="h-5 w-5" />
-            </Link>
-
-            <div className="flex items-center gap-3 pr-8">
+            <div className="flex items-center gap-3">
               <div className="relative h-12 w-12 shrink-0">
                 {set.logo_url ? (
                   <Image
@@ -99,12 +89,20 @@ function SetSection({
 
             {showCountdown && <CountdownTimer releaseDate={set.release_date} />}
 
-            <Link
-              href={`/sets/${set.code}`}
-              className="mt-1 text-sm font-medium text-accent-blue hover:underline"
-            >
-              View card list &rarr;
-            </Link>
+            <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+              <Link
+                href={`/sets/${set.code}`}
+                className="font-medium text-accent-blue hover:underline"
+              >
+                View card list &rarr;
+              </Link>
+              <Link
+                href={`/shop?set=${set.id}`}
+                className="font-medium text-accent-blue hover:underline"
+              >
+                Shop this set &rarr;
+              </Link>
+            </div>
           </div>
         ))}
       </div>
