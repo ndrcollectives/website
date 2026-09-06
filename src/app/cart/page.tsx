@@ -7,9 +7,11 @@ import { Minus, Plus, X } from "lucide-react";
 import { useCart } from "@/components/cart/cart-context";
 import { Button } from "@/components/ui/button";
 import { PriceTag } from "@/components/price-tag";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 export default function CartPage() {
   const { items, removeItem, setQuantity, subtotalCents } = useCart();
+  const { dict } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,12 +38,10 @@ export default function CartPage() {
   if (items.length === 0) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-24 text-center">
-        <h1 className="text-2xl font-bold">Your cart is empty</h1>
-        <p className="mt-2 text-muted">
-          Time to find your next chase card.
-        </p>
+        <h1 className="text-2xl font-bold">{dict.cart.emptyTitle}</h1>
+        <p className="mt-2 text-muted">{dict.cart.emptySubtitle}</p>
         <Link href="/shop" className="mt-6 inline-block">
-          <Button size="lg">Browse Shop</Button>
+          <Button size="lg">{dict.cart.browseShop}</Button>
         </Link>
       </div>
     );
@@ -49,7 +49,7 @@ export default function CartPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
-      <h1 className="text-3xl font-extrabold">Your Cart</h1>
+      <h1 className="text-3xl font-extrabold">{dict.cart.title}</h1>
 
       <div className="mt-6 grid min-w-0 gap-8 lg:grid-cols-[1fr_320px]">
         <div className="min-w-0 space-y-4">
@@ -74,7 +74,7 @@ export default function CartPage() {
                   <button
                     onClick={() => removeItem(item.productId)}
                     className="text-muted hover:text-accent-red"
-                    aria-label="Remove item"
+                    aria-label={dict.cart.removeItem}
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -110,14 +110,12 @@ export default function CartPage() {
         </div>
 
         <div className="h-fit rounded-xl border border-border bg-surface p-6">
-          <h2 className="mb-4 font-semibold">Order Summary</h2>
+          <h2 className="mb-4 font-semibold">{dict.cart.orderSummary}</h2>
           <div className="flex items-end justify-between text-sm">
-            <span className="text-muted">Subtotal</span>
+            <span className="text-muted">{dict.cart.subtotal}</span>
             <PriceTag cents={subtotalCents} className="items-end" />
           </div>
-          <p className="mt-1 text-xs text-muted">
-            Shipping & taxes calculated at checkout.
-          </p>
+          <p className="mt-1 text-xs text-muted">{dict.cart.shippingNote}</p>
           {error && <p className="mt-3 text-sm text-accent-red">{error}</p>}
           <Button
             size="lg"
@@ -125,7 +123,7 @@ export default function CartPage() {
             onClick={handleCheckout}
             disabled={loading}
           >
-            {loading ? "Redirecting..." : "Checkout with Stripe"}
+            {loading ? dict.cart.redirecting : dict.cart.checkout}
           </Button>
         </div>
       </div>

@@ -7,15 +7,19 @@ import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useCardSuggestions, type CardSuggestion } from "@/hooks/use-card-suggestions";
+import { useLanguage } from "@/lib/i18n/language-context";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
 import type { Set } from "@/lib/types";
 
-const PRODUCT_TYPES = [
-  { value: "single", label: "Single" },
-  { value: "sealed_box", label: "Booster Box" },
-  { value: "etb", label: "Elite Trainer Box" },
-  { value: "pack", label: "Booster Pack" },
-  { value: "graded_slab", label: "Graded Card / Slab" },
-];
+function productTypes(dict: Dictionary) {
+  return [
+    { value: "single", label: dict.shop.productTypeSingle },
+    { value: "sealed_box", label: dict.shop.productTypeSealedBox },
+    { value: "etb", label: dict.shop.productTypeEtb },
+    { value: "pack", label: dict.shop.productTypePack },
+    { value: "graded_slab", label: dict.shop.productTypeGradedSlab },
+  ];
+}
 
 const RARITIES = [
   "Common",
@@ -38,6 +42,8 @@ export function ShopFilters({ sets, params }: { sets: Set[]; params: SearchParam
   // products right away instead of scrolling past a long form first; at
   // `lg` and up they're always visible regardless of this toggle.
   const [open, setOpen] = useState(false);
+  const { dict } = useLanguage();
+  const PRODUCT_TYPES = productTypes(dict);
 
   const formRef = useRef<HTMLFormElement>(null);
   const setSelectRef = useRef<HTMLSelectElement>(null);
@@ -100,7 +106,7 @@ export function ShopFilters({ sets, params }: { sets: Set[]; params: SearchParam
       >
         <span className="flex items-center gap-2">
           <SlidersHorizontal className="h-4 w-4" />
-          Filters
+          {dict.shop.filters}
         </span>
         {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
       </button>
@@ -112,7 +118,7 @@ export function ShopFilters({ sets, params }: { sets: Set[]; params: SearchParam
       >
         <div ref={searchBoxRef} className="relative">
           <label className="mb-1 block text-xs font-semibold uppercase text-muted">
-            Search
+            {dict.shop.search}
           </label>
           <Input
             name="search"
@@ -122,7 +128,7 @@ export function ShopFilters({ sets, params }: { sets: Set[]; params: SearchParam
               setShowSuggestions(true);
             }}
             onFocus={() => setShowSuggestions(true)}
-            placeholder="Charizard 004/102"
+            placeholder={dict.shop.searchPlaceholder}
             autoComplete="off"
           />
           {showSuggestions && query.trim().length >= 2 && suggestions.length > 0 && (
@@ -148,7 +154,7 @@ export function ShopFilters({ sets, params }: { sets: Set[]; params: SearchParam
 
         <div>
           <label className="mb-1 block text-xs font-semibold uppercase text-muted">
-            Set / Expansion
+            {dict.shop.setExpansion}
           </label>
           <Select
             name="set"
@@ -156,7 +162,7 @@ export function ShopFilters({ sets, params }: { sets: Set[]; params: SearchParam
             defaultValue={params.set ?? ""}
             onChange={(e) => setSelectedSetId(e.target.value)}
           >
-            <option value="">All sets</option>
+            <option value="">{dict.shop.allSets}</option>
             {sets.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.name}
@@ -167,10 +173,10 @@ export function ShopFilters({ sets, params }: { sets: Set[]; params: SearchParam
 
         <div>
           <label className="mb-1 block text-xs font-semibold uppercase text-muted">
-            Card Type
+            {dict.shop.cardType}
           </label>
           <Select name="product_type" defaultValue={params.product_type ?? ""}>
-            <option value="">All types</option>
+            <option value="">{dict.shop.allTypes}</option>
             {PRODUCT_TYPES.map((t) => (
               <option key={t.value} value={t.value}>
                 {t.label}
@@ -181,10 +187,10 @@ export function ShopFilters({ sets, params }: { sets: Set[]; params: SearchParam
 
         <div>
           <label className="mb-1 block text-xs font-semibold uppercase text-muted">
-            Rarity
+            {dict.shop.rarity}
           </label>
           <Select name="rarity" defaultValue={params.rarity ?? ""}>
-            <option value="">All rarities</option>
+            <option value="">{dict.shop.allRarities}</option>
             {RARITIES.map((r) => (
               <option key={r} value={r}>
                 {r}
@@ -195,10 +201,10 @@ export function ShopFilters({ sets, params }: { sets: Set[]; params: SearchParam
 
         <div>
           <label className="mb-1 block text-xs font-semibold uppercase text-muted">
-            Condition
+            {dict.shop.condition}
           </label>
           <Select name="condition" defaultValue={params.condition ?? ""}>
-            <option value="">Any condition</option>
+            <option value="">{dict.shop.anyCondition}</option>
             {CONDITIONS.map((c) => (
               <option key={c} value={c}>
                 {c}
@@ -209,7 +215,7 @@ export function ShopFilters({ sets, params }: { sets: Set[]; params: SearchParam
 
         <div>
           <label className="mb-1 block text-xs font-semibold uppercase text-muted">
-            Price ($)
+            {dict.shop.price}
           </label>
           <div className="flex gap-2">
             <Input
@@ -217,32 +223,32 @@ export function ShopFilters({ sets, params }: { sets: Set[]; params: SearchParam
               name="min_price"
               min={0}
               defaultValue={params.min_price}
-              placeholder="Min"
+              placeholder={dict.shop.min}
             />
             <Input
               type="number"
               name="max_price"
               min={0}
               defaultValue={params.max_price}
-              placeholder="Max"
+              placeholder={dict.shop.max}
             />
           </div>
         </div>
 
         <div>
           <label className="mb-1 block text-xs font-semibold uppercase text-muted">
-            Sort By
+            {dict.shop.sortBy}
           </label>
           <Select name="sort" defaultValue={params.sort ?? "card_number"}>
-            <option value="newest">Newest Added</option>
-            <option value="price_asc">Price: Low to High</option>
-            <option value="price_desc">Price: High to Low</option>
-            <option value="card_number">Set Number</option>
+            <option value="newest">{dict.shop.sortNewest}</option>
+            <option value="price_asc">{dict.shop.sortPriceAsc}</option>
+            <option value="price_desc">{dict.shop.sortPriceDesc}</option>
+            <option value="card_number">{dict.shop.sortCardNumber}</option>
           </Select>
         </div>
 
         <Button type="submit" className="w-full">
-          Apply Filters
+          {dict.shop.applyFilters}
         </Button>
       </form>
     </div>

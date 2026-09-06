@@ -5,6 +5,8 @@ import { ProductCard } from "@/components/product-card";
 import { CardTile } from "@/components/card-tile";
 import { ShopFilters } from "@/components/shop-filters";
 import { getAllSets, getShopEntries } from "@/lib/queries";
+import { getLocale } from "@/lib/i18n/get-locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 
 export const metadata: Metadata = {
   title: "Shop",
@@ -36,10 +38,12 @@ export default async function ShopPage({
     sort: (params.sort as never) ?? "card_number",
   };
 
-  const [entries, sets] = await Promise.all([
+  const [entries, sets, locale] = await Promise.all([
     getShopEntries(filters),
     getAllSets(),
+    getLocale(),
   ]);
+  const dict = getDictionary(locale);
 
   const listedCount = entries.filter((e) => e.kind === "product").length;
 
@@ -63,11 +67,11 @@ export default async function ShopPage({
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      <h1 className="text-3xl font-extrabold">Shop</h1>
+      <h1 className="text-3xl font-extrabold">{dict.shop.title}</h1>
       <p className="mt-2 text-muted">
-        {listedCount} item{listedCount === 1 ? "" : "s"} for sale
+        {listedCount} {listedCount === 1 ? dict.shop.itemsForSale : dict.shop.itemsForSalePlural}
         {entries.length > listedCount
-          ? ` · ${entries.length - listedCount} more shown, not currently listed`
+          ? ` · ${entries.length - listedCount} ${dict.shop.moreShown}`
           : ""}
       </p>
 
@@ -76,9 +80,7 @@ export default async function ShopPage({
 
         <div className="min-w-0">
           {entries.length === 0 ? (
-            <p className="mt-16 text-center text-muted">
-              No products match those filters yet.
-            </p>
+            <p className="mt-16 text-center text-muted">{dict.shop.noResults}</p>
           ) : (
             <>
               <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
@@ -98,26 +100,28 @@ export default async function ShopPage({
                       href={pageHref(currentPage - 1)}
                       className="flex items-center gap-1 rounded-lg border border-border px-3 py-2 text-sm font-medium hover:border-accent-yellow/60"
                     >
-                      <ChevronLeft className="h-4 w-4" /> Prev
+                      <ChevronLeft className="h-4 w-4" /> {dict.shop.prev}
                     </Link>
                   ) : (
                     <span className="flex items-center gap-1 rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted opacity-40">
-                      <ChevronLeft className="h-4 w-4" /> Prev
+                      <ChevronLeft className="h-4 w-4" /> {dict.shop.prev}
                     </span>
                   )}
                   <span className="text-sm text-muted">
-                    Page {currentPage} of {totalPages}
+                    {dict.shop.pageOf
+                      .replace("{current}", String(currentPage))
+                      .replace("{total}", String(totalPages))}
                   </span>
                   {currentPage < totalPages ? (
                     <Link
                       href={pageHref(currentPage + 1)}
                       className="flex items-center gap-1 rounded-lg border border-border px-3 py-2 text-sm font-medium hover:border-accent-yellow/60"
                     >
-                      Next <ChevronRight className="h-4 w-4" />
+                      {dict.shop.next} <ChevronRight className="h-4 w-4" />
                     </Link>
                   ) : (
                     <span className="flex items-center gap-1 rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted opacity-40">
-                      Next <ChevronRight className="h-4 w-4" />
+                      {dict.shop.next} <ChevronRight className="h-4 w-4" />
                     </span>
                   )}
                 </div>

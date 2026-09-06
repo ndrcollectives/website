@@ -13,14 +13,18 @@ import {
   getUpcomingSets,
 } from "@/lib/queries";
 import { formatDate } from "@/lib/utils";
+import { getLocale } from "@/lib/i18n/get-locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 
 export default async function HomePage() {
-  const [sets, products, articles, recentProducts] = await Promise.all([
+  const [sets, products, articles, recentProducts, locale] = await Promise.all([
     getUpcomingSets(4),
     getFeaturedProducts(8),
     getPublishedArticles(undefined, 3),
     getRecentProducts(10),
+    getLocale(),
   ]);
+  const dict = getDictionary(locale);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
@@ -28,24 +32,21 @@ export default async function HomePage() {
       <section className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-surface via-surface to-accent-purple/10 p-8 md:p-14">
         <div className="max-w-2xl">
           <h1 className="text-4xl font-extrabold leading-tight tracking-tight md:text-6xl">
-            Chase the{" "}
+            {dict.home.heroTitlePrefix}{" "}
             <span className="bg-gradient-to-r from-accent-yellow via-accent-red to-accent-purple bg-clip-text text-transparent">
-              next big pull
+              {dict.home.heroTitleHighlight}
             </span>
           </h1>
-          <p className="mt-4 max-w-lg text-muted md:text-lg">
-            Breaking Pokémon TCG news, a live set release calendar, and a
-            curated marketplace of singles, sealed product, and graded slabs.
-          </p>
+          <p className="mt-4 max-w-lg text-muted md:text-lg">{dict.home.heroSubtitle}</p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/shop" className="inline-flex">
               <Button size="lg">
-                Shop Latest Cards <ArrowRight className="h-4 w-4" />
+                {dict.home.shopLatestCards} <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
             <Link href="/sets" className="inline-flex">
               <Button size="lg" variant="secondary">
-                View Sets
+                {dict.home.viewSets}
               </Button>
             </Link>
           </div>
@@ -58,10 +59,10 @@ export default async function HomePage() {
           <div className="mb-4 flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-xl font-bold">
               <CalendarClock className="h-5 w-5 text-accent-blue" />
-              Upcoming Set Releases
+              {dict.home.upcomingSetReleases}
             </h2>
             <Link href="/sets" className="text-sm text-accent-blue hover:underline">
-              Full calendar
+              {dict.home.fullCalendar}
             </Link>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -97,9 +98,9 @@ export default async function HomePage() {
       {products.length > 0 && (
         <section className="mt-14">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-bold">Trending Singles & Featured Boxes</h2>
+            <h2 className="text-xl font-bold">{dict.home.trendingSingles}</h2>
             <Link href="/shop" className="text-sm text-accent-blue hover:underline">
-              Browse shop
+              {dict.home.browseShop}
             </Link>
           </div>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -114,9 +115,9 @@ export default async function HomePage() {
       {articles.length > 0 && (
         <section className="mt-14">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-bold">Latest Articles</h2>
+            <h2 className="text-xl font-bold">{dict.home.latestArticles}</h2>
             <Link href="/news" className="text-sm text-accent-blue hover:underline">
-              All news
+              {dict.home.allNews}
             </Link>
           </div>
           <div className="grid gap-6 md:grid-cols-3">
@@ -162,9 +163,9 @@ export default async function HomePage() {
       {recentProducts.length > 0 && (
         <section className="mt-14">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-bold">Just Added</h2>
+            <h2 className="text-xl font-bold">{dict.home.justAdded}</h2>
             <Link href="/shop" className="text-sm text-accent-blue hover:underline">
-              Browse shop
+              {dict.home.browseShop}
             </Link>
           </div>
           <RecentAdditionsTicker products={recentProducts} />

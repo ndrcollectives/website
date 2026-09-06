@@ -8,6 +8,8 @@ import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { createClient } from "@/lib/supabase/server";
 import { isNextControlFlowError } from "@/lib/supabase/errors";
+import { LanguageProvider } from "@/lib/i18n/language-context";
+import { getLocale } from "@/lib/i18n/get-locale";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,6 +41,7 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const locale = await getLocale();
   let isSignedIn = false;
   try {
     const supabase = await createClient();
@@ -53,7 +56,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
 
   return (
     <html
-      lang="en"
+      lang={locale}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
@@ -64,12 +67,14 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
             if (t === "light") document.documentElement.dataset.theme = "light";
           } catch (e) {}`}
         </Script>
-        <CartProvider>
-          <Navbar isSignedIn={isSignedIn} />
-          <main className="flex-1">{children}</main>
-          <Footer />
-          <CartDrawer />
-        </CartProvider>
+        <LanguageProvider initialLocale={locale}>
+          <CartProvider>
+            <Navbar isSignedIn={isSignedIn} />
+            <main className="flex-1">{children}</main>
+            <Footer />
+            <CartDrawer />
+          </CartProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

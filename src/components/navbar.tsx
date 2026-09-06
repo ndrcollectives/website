@@ -8,13 +8,9 @@ import { useCart } from "@/components/cart/cart-context";
 import { Input } from "@/components/ui/input";
 import { Logomark } from "@/components/logomark";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { LanguageSwitcher } from "@/components/language-switcher";
 import { useCardSuggestions, type CardSuggestion } from "@/hooks/use-card-suggestions";
-
-const NAV_LINKS = [
-  { href: "/shop", label: "Shop" },
-  { href: "/sets", label: "Sets" },
-  { href: "/news", label: "News" },
-];
+import { useLanguage } from "@/lib/i18n/language-context";
 
 function SearchBox({
   formClassName,
@@ -23,6 +19,7 @@ function SearchBox({
   onSubmit,
   suggestions,
   onSelectSuggestion,
+  placeholder,
 }: {
   formClassName: string;
   query: string;
@@ -30,6 +27,7 @@ function SearchBox({
   onSubmit: (e: FormEvent) => void;
   suggestions: CardSuggestion[];
   onSelectSuggestion: (card: CardSuggestion) => void;
+  placeholder: string;
 }) {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -55,7 +53,7 @@ function SearchBox({
             setShowSuggestions(true);
           }}
           onFocus={() => setShowSuggestions(true)}
-          placeholder="Search cards, sets, numbers..."
+          placeholder={placeholder}
           className="pl-9"
           autoComplete="off"
         />
@@ -88,10 +86,17 @@ function SearchBox({
 
 export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
   const { itemCount, openCart } = useCart();
+  const { dict } = useLanguage();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [query, setQuery] = useState("");
   const router = useRouter();
   const suggestions = useCardSuggestions(query);
+
+  const NAV_LINKS = [
+    { href: "/shop", label: dict.nav.shop },
+    { href: "/sets", label: dict.nav.sets },
+    { href: "/news", label: dict.nav.news },
+  ];
 
   function handleSearch(e: FormEvent) {
     e.preventDefault();
@@ -137,21 +142,23 @@ export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
           onSubmit={handleSearch}
           suggestions={suggestions}
           onSelectSuggestion={selectSuggestion}
+          placeholder={dict.nav.searchPlaceholder}
         />
 
         <div className="ml-auto flex items-center gap-2 md:ml-0">
+          <LanguageSwitcher className="hidden md:flex" />
           <ThemeToggle />
           <Link
             href={isSignedIn ? "/account" : "/sign-in"}
             className="hidden rounded-lg p-2 hover:bg-surface-raised md:block"
-            aria-label="Account"
+            aria-label={dict.nav.account}
           >
             <User className="h-5 w-5" />
           </Link>
           <button
             onClick={openCart}
             className="relative rounded-lg p-2 hover:bg-surface-raised"
-            aria-label="Open cart"
+            aria-label={dict.nav.openCart}
           >
             <ShoppingCart className="h-5 w-5" />
             {itemCount > 0 && (
@@ -163,7 +170,7 @@ export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
           <button
             className="rounded-lg p-2 hover:bg-surface-raised md:hidden"
             onClick={() => setMobileOpen((v) => !v)}
-            aria-label="Toggle menu"
+            aria-label={dict.nav.toggleMenu}
           >
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -179,6 +186,7 @@ export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
             onSubmit={handleSearch}
             suggestions={suggestions}
             onSelectSuggestion={selectSuggestion}
+            placeholder={dict.nav.searchPlaceholder}
           />
           <nav className="flex flex-col gap-3">
             {NAV_LINKS.map((link) => (
@@ -196,8 +204,9 @@ export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
               onClick={() => setMobileOpen(false)}
               className="text-sm font-medium text-muted hover:text-foreground"
             >
-              {isSignedIn ? "My Account" : "Sign In"}
+              {isSignedIn ? dict.nav.myAccount : dict.nav.signIn}
             </Link>
+            <LanguageSwitcher className="justify-start px-0" />
           </nav>
         </div>
       )}
