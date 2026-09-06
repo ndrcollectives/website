@@ -63,36 +63,41 @@ export async function syncSetsFromApi() {
   redirect(`/admin/sets?synced=${synced}`);
 }
 
+async function syncCardsInternal(setId: string, setCode: string): Promise<number> {
+  const supabase = createAdminClient();
+  const cards = await fetchCardsForSet(setCode);
+
+  if (cards.length > 0) {
+    const { error } = await supabase.from("cards").upsert(
+      cards.map((c) => ({
+        set_id: setId,
+        api_id: c.api_id,
+        name: c.name,
+        number: c.number,
+        rarity: c.rarity,
+        supertype: c.supertype,
+        image_small: c.image_small,
+        image_large: c.image_large,
+        artist: c.artist,
+      })),
+      { onConflict: "api_id", ignoreDuplicates: false },
+    );
+
+    if (error) throw new Error(error.message);
+  }
+
+  return cards.length;
+}
+
 export async function syncCardsForSet(formData: FormData) {
   await requireAdmin();
-  const supabase = createAdminClient();
 
   const setId = String(formData.get("set_id"));
   const setCode = String(formData.get("set_code"));
 
   let synced = 0;
   try {
-    const cards = await fetchCardsForSet(setCode);
-
-    if (cards.length > 0) {
-      const { error } = await supabase.from("cards").upsert(
-        cards.map((c) => ({
-          set_id: setId,
-          api_id: c.api_id,
-          name: c.name,
-          number: c.number,
-          rarity: c.rarity,
-          supertype: c.supertype,
-          image_small: c.image_small,
-          image_large: c.image_large,
-          artist: c.artist,
-        })),
-        { onConflict: "api_id", ignoreDuplicates: false },
-      );
-
-      if (error) throw new Error(error.message);
-    }
-    synced = cards.length;
+    synced = await syncCardsInternal(setId, setCode);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Sync failed";
     redirect(`/admin/sets?error=${encodeURIComponent(message)}`);
@@ -101,6 +106,23 @@ export async function syncCardsForSet(formData: FormData) {
   revalidatePath("/admin/sets");
   revalidatePath(`/sets/${setCode}`);
   redirect(`/admin/sets?cardsSynced=${synced}`);
+}
+
+// Same card sync as above, but returns a result instead of redirecting —
+// used by BulkSyncCardsButton to call this once per set in a client-side
+// loop without navigating away after every single set.
+export async function syncCardsForSetSilent(
+  setId: string,
+  setCode: string,
+): Promise<{ synced: number } | { error: string }> {
+  await requireAdmin();
+
+  try {
+    const synced = await syncCardsInternal(setId, setCode);
+    return { synced };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Sync failed" };
+  }
 }
 
 export async function deleteSet(formData: FormData) {

@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { BulkSyncCardsButton } from "@/components/bulk-sync-cards-button";
 import { formatDate } from "@/lib/utils";
 import { createSet, deleteSet, syncCardsForSet, syncSetsFromApi } from "./actions";
 
@@ -58,6 +59,10 @@ export default async function AdminSetsPage({
           sets manually below until it&apos;s picked up there.
         </p>
       </form>
+
+      <BulkSyncCardsButton
+        sets={(sets ?? []).map((s) => ({ id: s.id, code: s.code, name: s.name }))}
+      />
 
       <form
         action={createSet}
