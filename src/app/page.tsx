@@ -42,7 +42,7 @@ export default async function HomePage() {
             </Link>
             <Link href="/sets" className="inline-flex">
               <Button size="lg" variant="secondary">
-                View Upcoming Sets
+                View Sets
               </Button>
             </Link>
           </div>
