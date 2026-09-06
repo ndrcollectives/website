@@ -112,6 +112,9 @@ const en = {
     title: "Frequently Asked Questions",
     subtitle: "Answers to the questions we get asked most.",
   },
+  scrollToTop: {
+    label: "Scroll to top",
+  },
   language: {
     label: "Language",
   },
@@ -261,6 +264,9 @@ const nl: Dictionary = {
   faq: {
     title: "Veelgestelde vragen",
     subtitle: "Antwoorden op de vragen die we het vaakst krijgen.",
+  },
+  scrollToTop: {
+    label: "Scroll naar boven",
   },
   language: {
     label: "Taal",

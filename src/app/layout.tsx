@@ -13,6 +13,7 @@ import { getLocale } from "@/lib/i18n/get-locale";
 import { ConsentProvider } from "@/lib/consent-context";
 import { getConsent } from "@/lib/get-consent";
 import { CookieBanner } from "@/components/cookie-banner";
+import { ScrollToTopButton } from "@/components/scroll-to-top-button";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -78,6 +79,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
               <Footer />
               <CartDrawer />
               <CookieBanner />
+              <ScrollToTopButton />
             </CartProvider>
           </LanguageProvider>
         </ConsentProvider>
