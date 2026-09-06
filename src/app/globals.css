@@ -44,9 +44,22 @@
   --font-mono: var(--font-geist-mono);
 }
 
+html {
+  overflow-x: hidden;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
+  overflow-x: hidden;
+  /* Backstop, not a fix: a genuinely too-wide element should have its
+     own overflow-x-auto and min-w-0 so it scrolls in place instead of
+     silently getting clipped — see the grid-cols-[...] layouts in
+     admin/layout.tsx, shop/page.tsx, cart/page.tsx for the real fix
+     this pairs with (grid items default to min-width: auto, so a wide
+     child forces the whole grid wider than the viewport even when the
+     child itself scrolls). */
+  max-width: 100vw;
 }
 
 input[type="date"] {

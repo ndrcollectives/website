@@ -51,8 +51,8 @@ export default function CartPage() {
     <div className="mx-auto max-w-5xl px-4 py-8">
       <h1 className="text-3xl font-extrabold">Your Cart</h1>
 
-      <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_320px]">
-        <div className="space-y-4">
+      <div className="mt-6 grid min-w-0 gap-8 lg:grid-cols-[1fr_320px]">
+        <div className="min-w-0 space-y-4">
           {items.map((item) => (
             <div
               key={item.productId}

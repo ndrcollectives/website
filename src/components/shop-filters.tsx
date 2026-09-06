@@ -92,7 +92,7 @@ export function ShopFilters({ sets, params }: { sets: Set[]; params: SearchParam
   }
 
   return (
-    <div className="h-fit rounded-xl border border-border bg-surface p-4">
+    <div className="h-fit min-w-0 rounded-xl border border-border bg-surface p-4">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}

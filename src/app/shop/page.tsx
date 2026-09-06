@@ -71,10 +71,10 @@ export default async function ShopPage({
           : ""}
       </p>
 
-      <div className="mt-6 grid gap-8 lg:grid-cols-[260px_1fr]">
+      <div className="mt-6 grid min-w-0 gap-8 lg:grid-cols-[260px_1fr]">
         <ShopFilters sets={sets} params={params} />
 
-        <div>
+        <div className="min-w-0">
           {entries.length === 0 ? (
             <p className="mt-16 text-center text-muted">
               No products match those filters yet.

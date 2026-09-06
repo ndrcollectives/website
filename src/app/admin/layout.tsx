@@ -17,8 +17,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      <div className="grid gap-8 md:grid-cols-[200px_1fr]">
-        <nav className="flex flex-row gap-2 overflow-x-auto md:flex-col">
+      <div className="grid min-w-0 gap-8 md:grid-cols-[200px_1fr]">
+        <nav className="flex min-w-0 flex-row gap-2 overflow-x-auto md:flex-col">
           {LINKS.map((link) => (
             <Link
               key={link.href}
@@ -29,7 +29,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             </Link>
           ))}
         </nav>
-        <div>{children}</div>
+        <div className="min-w-0">{children}</div>
       </div>
     </div>
   );
