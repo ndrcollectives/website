@@ -82,6 +82,21 @@ export async function getFeaturedProducts(limit = 8): Promise<Product[]> {
   }, []);
 }
 
+// Powers the homepage's "Just Added" ticker — the most recently listed
+// products regardless of featured/inventory status, so it reflects what
+// was actually just added to the catalog.
+export async function getRecentProducts(limit = 10): Promise<Product[]> {
+  return safe(async () => {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("products")
+      .select("*, set:sets(*)")
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    return (data as Product[]) ?? [];
+  }, []);
+}
+
 export type ShopFilters = {
   setId?: string;
   productType?: string;

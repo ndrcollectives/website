@@ -5,18 +5,21 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ProductCard } from "@/components/product-card";
 import { CountdownTimer } from "@/components/countdown-timer";
+import { RecentAdditionsTicker } from "@/components/recent-additions-ticker";
 import {
   getFeaturedProducts,
   getPublishedArticles,
+  getRecentProducts,
   getUpcomingSets,
 } from "@/lib/queries";
 import { formatDate } from "@/lib/utils";
 
 export default async function HomePage() {
-  const [sets, products, articles] = await Promise.all([
+  const [sets, products, articles, recentProducts] = await Promise.all([
     getUpcomingSets(4),
     getFeaturedProducts(8),
     getPublishedArticles(undefined, 3),
+    getRecentProducts(10),
   ]);
 
   return (
@@ -152,6 +155,19 @@ export default async function HomePage() {
               </Link>
             ))}
           </div>
+        </section>
+      )}
+
+      {/* Just added ticker */}
+      {recentProducts.length > 0 && (
+        <section className="mt-14">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-xl font-bold">Just Added</h2>
+            <Link href="/shop" className="text-sm text-accent-blue hover:underline">
+              Browse shop
+            </Link>
+          </div>
+          <RecentAdditionsTicker products={recentProducts} />
         </section>
       )}
     </div>
