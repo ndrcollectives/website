@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { ShoppingCart } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { RarityBadge } from "@/components/ui/rarity-badge";
 import { getCardsForSet, getSetByCode } from "@/lib/queries";
 import { formatDate } from "@/lib/utils";
 
@@ -101,9 +101,7 @@ export default async function SetCardListPage({ params }: Props) {
               <div className="mt-1 flex items-center justify-between">
                 <span className="text-xs text-muted">#{card.number}</span>
                 {card.rarity && (
-                  <Badge variant="purple" className="text-[10px]">
-                    {card.rarity}
-                  </Badge>
+                  <RarityBadge rarity={card.rarity} className="text-[10px]" />
                 )}
               </div>
             </div>

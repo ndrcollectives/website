@@ -4,17 +4,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { ShoppingCart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { RarityBadge } from "@/components/ui/rarity-badge";
 import { useCart } from "@/components/cart/cart-context";
 import { formatPrice } from "@/lib/utils";
 import type { Product } from "@/lib/types";
-
-const RARITY_VARIANT: Record<string, "yellow" | "purple" | "blue" | "red" | "default"> = {
-  "Hyper Rare": "yellow",
-  "Secret Illustration Rare": "purple",
-  "Special Illustration Rare": "purple",
-  "Illustration Rare": "blue",
-  "Ultra Rare": "red",
-};
 
 export function ProductCard({ product }: { product: Product }) {
   const { addItem } = useCart();
@@ -49,11 +42,7 @@ export function ProductCard({ product }: { product: Product }) {
       </Link>
 
       <div className="flex flex-1 flex-col gap-1 p-3">
-        {product.rarity && (
-          <Badge variant={RARITY_VARIANT[product.rarity] ?? "default"} className="w-fit">
-            {product.rarity}
-          </Badge>
-        )}
+        {product.rarity && <RarityBadge rarity={product.rarity} className="w-fit" />}
         <Link href={`/shop/${product.slug}`}>
           <h3 className="line-clamp-2 text-sm font-semibold leading-snug hover:text-accent-yellow">
             {product.title}

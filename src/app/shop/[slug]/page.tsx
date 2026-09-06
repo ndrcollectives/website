@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { Badge } from "@/components/ui/badge";
+import { RarityBadge } from "@/components/ui/rarity-badge";
 import { HoloCard } from "@/components/holo-card";
 import { AddToCartPanel } from "@/components/add-to-cart-panel";
 import { getProductBySlug } from "@/lib/queries";
@@ -107,7 +107,7 @@ export default async function ProductDetailPage({ params }: Props) {
         </div>
 
         <div>
-          {product.rarity && <Badge variant="purple">{product.rarity}</Badge>}
+          {product.rarity && <RarityBadge rarity={product.rarity} />}
           <h1 className="mt-3 text-3xl font-extrabold leading-tight">
             {product.title}
           </h1>
