@@ -233,7 +233,7 @@ export function ShopFilters({ sets, params }: { sets: Set[]; params: SearchParam
           <label className="mb-1 block text-xs font-semibold uppercase text-muted">
             Sort By
           </label>
-          <Select name="sort" defaultValue={params.sort ?? "newest"}>
+          <Select name="sort" defaultValue={params.sort ?? "card_number"}>
             <option value="newest">Newest Added</option>
             <option value="price_asc">Price: Low to High</option>
             <option value="price_desc">Price: High to Low</option>
