@@ -221,7 +221,7 @@ export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
       />
     )}
     <aside
-      className={`fixed left-0 top-0 z-50 h-full w-[85vw] max-w-xs transform border-r border-border bg-surface transition-transform duration-300 md:hidden ${
+      className={`fixed left-0 top-0 z-50 h-full w-64 max-w-[80vw] transform border-r border-border bg-surface transition-transform duration-300 md:hidden ${
         mobileOpen ? "translate-x-0" : "-translate-x-full"
       }`}
     >
