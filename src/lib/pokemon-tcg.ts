@@ -30,17 +30,20 @@ function apiHeaders(): HeadersInit {
   return apiKey ? { "X-Api-Key": apiKey } : {};
 }
 
-const RETRYABLE_STATUSES = new Set([429, 502, 503, 504]);
+// pokemontcg.io's shared hosting throws transient 500s under load, not just
+// 502/503/504 — treat it the same as those and retry rather than failing
+// the whole sync on one flaky response.
+const RETRYABLE_STATUSES = new Set([429, 500, 502, 503, 504]);
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 // The public API (especially unauthenticated — see POKEMON_TCG_API_KEY)
-// occasionally returns transient 429/502/503/504s under load or rate
-// limiting. Retry those a couple of times with backoff before giving up;
+// occasionally returns transient 429/500/502/503/504s under load or rate
+// limiting. Retry those a few times with backoff before giving up;
 // anything else (404, malformed query, etc.) fails immediately.
-async function fetchWithRetry(url: string, attempts = 3): Promise<Response> {
+async function fetchWithRetry(url: string, attempts = 4): Promise<Response> {
   let lastError: unknown;
 
   for (let attempt = 1; attempt <= attempts; attempt++) {
@@ -54,7 +57,7 @@ async function fetchWithRetry(url: string, attempts = 3): Promise<Response> {
       lastError = error;
       if (attempt === attempts) throw error;
     }
-    await sleep(500 * attempt);
+    await sleep(1000 * attempt);
   }
 
   throw lastError instanceof Error ? lastError : new Error(String(lastError));
@@ -64,10 +67,20 @@ function toIsoDate(apiDate: string): string {
   return apiDate.replaceAll("/", "-");
 }
 
+async function describeError(res: Response): Promise<string> {
+  const body = await res.text().catch(() => "");
+  const snippet = body.trim().slice(0, 200);
+  return snippet
+    ? `Pokémon TCG API request failed: ${res.status} ${res.statusText} — ${snippet}`
+    : `Pokémon TCG API request failed: ${res.status} ${res.statusText}`;
+}
+
 export async function fetchAllSets(): Promise<SyncedSet[]> {
   const results: SyncedSet[] = [];
   let page = 1;
-  const pageSize = 250;
+  // The API's shared hosting times out more often at the max pageSize
+  // (250); a smaller page is slower but far less likely to 500.
+  const pageSize = 100;
 
   for (;;) {
     const res = await fetchWithRetry(
@@ -75,7 +88,7 @@ export async function fetchAllSets(): Promise<SyncedSet[]> {
     );
 
     if (!res.ok) {
-      throw new Error(`Pokémon TCG API request failed: ${res.status} ${res.statusText}`);
+      throw new Error(await describeError(res));
     }
 
     const body = (await res.json()) as { data: ApiSet[] };
@@ -96,6 +109,7 @@ export async function fetchAllSets(): Promise<SyncedSet[]> {
 
     if (body.data.length < pageSize) break;
     page += 1;
+    await sleep(300);
   }
 
   return results;
@@ -127,7 +141,7 @@ export type SyncedCard = {
 export async function fetchCardsForSet(setCode: string): Promise<SyncedCard[]> {
   const results: SyncedCard[] = [];
   let page = 1;
-  const pageSize = 250;
+  const pageSize = 100;
 
   for (;;) {
     const res = await fetchWithRetry(
@@ -135,7 +149,7 @@ export async function fetchCardsForSet(setCode: string): Promise<SyncedCard[]> {
     );
 
     if (!res.ok) {
-      throw new Error(`Pokémon TCG API request failed: ${res.status} ${res.statusText}`);
+      throw new Error(await describeError(res));
     }
 
     const body = (await res.json()) as { data: ApiCard[] };
@@ -155,6 +169,7 @@ export async function fetchCardsForSet(setCode: string): Promise<SyncedCard[]> {
 
     if (body.data.length < pageSize) break;
     page += 1;
+    await sleep(300);
   }
 
   return results;
