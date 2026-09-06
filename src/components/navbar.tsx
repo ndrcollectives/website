@@ -133,43 +133,44 @@ export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
   return (
     <>
     <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur">
-      <div className="relative mx-auto flex h-16 max-w-7xl items-center gap-2 px-4">
-        <div className="flex shrink-0 items-center gap-6">
-          <button
-            className="rounded-lg p-2 hover:bg-surface-raised md:hidden"
-            onClick={() => {
-              setMobileOpen((v) => !v);
-              setSearchOpen(false);
-            }}
-            aria-label={dict.nav.toggleMenu}
-          >
-            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
+      <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4">
+        <button
+          className="shrink-0 rounded-lg p-2 hover:bg-surface-raised md:hidden"
+          onClick={() => {
+            setMobileOpen((v) => !v);
+            setSearchOpen(false);
+          }}
+          aria-label={dict.nav.toggleMenu}
+        >
+          {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </button>
 
-          <nav className="hidden items-center gap-6 md:flex">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-sm font-medium text-muted transition-colors hover:text-foreground"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
-        </div>
-
-        {/* Centered in the space between the left and right zones (rather
-            than viewport-absolute) so the wordmark shrinks/truncates
-            gracefully on narrow screens instead of having to be hidden. */}
-        <div className="flex min-w-0 flex-1 justify-center">
+        {/* Centered in the remaining space on mobile (rather than
+            viewport-absolute) so the wordmark shrinks/truncates gracefully
+            on narrow screens; pinned left of the search bar on desktop. */}
+        <div className="flex min-w-0 flex-1 justify-center md:flex-none md:justify-start">
           <Link href="/" className="flex min-w-0 items-center gap-2 font-bold">
             <Logomark className="shrink-0" />
             <span className="truncate text-sm sm:text-base">NDR Collectives</span>
           </Link>
         </div>
 
-        <div className="flex shrink-0 items-center gap-1">
+        {/* Desktop: search is always visible in the header, not a toggle
+            (mobile keeps the toggle below — narrow screens don't have room
+            for a persistent bar). */}
+        <div className="hidden min-w-0 md:flex md:flex-1">
+          <SearchBox
+            formClassName="w-full"
+            query={query}
+            onQueryChange={setQuery}
+            onSubmit={handleSearch}
+            suggestions={suggestions}
+            onSelectSuggestion={selectSuggestion}
+            placeholder={dict.nav.searchPlaceholder}
+          />
+        </div>
+
+        <div className="flex shrink-0 items-center gap-1 md:hidden">
           <button
             onClick={() => {
               setSearchOpen((v) => !v);
@@ -180,9 +181,25 @@ export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
           >
             <Search className="h-5 w-5" />
           </button>
+          <button
+            onClick={openCart}
+            className="relative rounded-lg p-2 hover:bg-surface-raised"
+            aria-label={dict.nav.openCart}
+          >
+            <ShoppingCart className="h-5 w-5" />
+            {itemCount > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent-yellow px-1 text-[10px] font-bold text-slate-950">
+                {itemCount}
+              </span>
+            )}
+          </button>
+          <SettingsMenu />
+        </div>
+
+        <div className="hidden shrink-0 items-center gap-1 md:flex">
           <Link
             href={isSignedIn ? "/account" : "/sign-in"}
-            className="hidden rounded-lg p-2 hover:bg-surface-raised md:block"
+            className="rounded-lg p-2 hover:bg-surface-raised"
             aria-label={dict.nav.account}
           >
             <User className="h-5 w-5" />
@@ -199,12 +216,11 @@ export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
               </span>
             )}
           </button>
-          <SettingsMenu />
         </div>
       </div>
 
       {searchOpen && (
-        <div className="border-t border-border p-4">
+        <div className="border-t border-border p-4 md:hidden">
           <SearchBox
             formClassName="mx-auto max-w-2xl"
             query={query}
@@ -218,6 +234,32 @@ export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
         </div>
       )}
 
+      {/* Desktop-only secondary row: nav links on the left (category-row
+          style, like the reference layout), settings on the right — mobile
+          gets these via the burger drawer and its own gear button instead. */}
+      <div className="hidden border-t border-border md:block">
+        <div className="mx-auto flex h-11 max-w-7xl items-center justify-between px-4">
+          <nav className="flex items-center gap-6">
+            {NAV_LINKS.map((link) => {
+              const active = pathname === link.href || pathname?.startsWith(`${link.href}/`);
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    "flex items-center gap-1.5 text-sm font-medium text-muted transition-colors hover:text-foreground",
+                    active && "text-foreground",
+                  )}
+                >
+                  <link.icon className="h-4 w-4" />
+                  {link.label}
+                </Link>
+              );
+            })}
+          </nav>
+          <SettingsMenu />
+        </div>
+      </div>
     </header>
 
     {/* Rendered outside <header> — that element's backdrop-blur creates a
