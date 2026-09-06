@@ -141,6 +141,12 @@ export type ShopEntry =
   | { kind: "product"; id: string; product: Product }
   | { kind: "card"; id: string; card: Card; set: Set | null };
 
+// A favorite is either a listed product or a catalog card with no listing
+// yet (favorited from a set's checklist) — see getFavoriteEntries.
+export type FavoriteEntry =
+  | { kind: "product"; id: string; product: Product }
+  | { kind: "card"; id: string; card: Card; set: Set | null };
+
 export type CartItem = {
   productId: string;
   slug: string;

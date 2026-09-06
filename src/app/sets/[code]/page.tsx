@@ -3,7 +3,8 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { ShoppingCart } from "lucide-react";
 import { RarityBadge } from "@/components/ui/rarity-badge";
-import { getCardsForSet, getSetByCode } from "@/lib/queries";
+import { FavoriteButton } from "@/components/favorite-button";
+import { getCardsForSet, getFavoriteCardIds, getSetByCode } from "@/lib/queries";
 import { formatDate } from "@/lib/utils";
 
 type Props = { params: Promise<{ code: string }> };
@@ -24,7 +25,10 @@ export default async function SetCardListPage({ params }: Props) {
   const set = await getSetByCode(code);
   if (!set) notFound();
 
-  const cards = await getCardsForSet(set.id);
+  const [cards, favoriteCardIds] = await Promise.all([
+    getCardsForSet(set.id),
+    getFavoriteCardIds(),
+  ]);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
@@ -75,6 +79,11 @@ export default async function SetCardListPage({ params }: Props) {
               key={card.id}
               className="relative flex flex-col overflow-hidden rounded-xl border border-border bg-surface p-3"
             >
+              <FavoriteButton
+                cardId={card.id}
+                initialFavorited={favoriteCardIds.has(card.id)}
+                className="absolute left-2 top-2 z-10"
+              />
               <Link
                 href={`/shop?set=${set.id}&search=${encodeURIComponent(card.name)}`}
                 className="absolute right-2 top-2 z-10 rounded-lg bg-background/80 p-1.5 text-muted backdrop-blur transition-colors hover:text-accent-yellow"

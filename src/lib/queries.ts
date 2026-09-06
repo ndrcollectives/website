@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { isNextControlFlowError } from "@/lib/supabase/errors";
 import { normalizeCardNumber } from "@/lib/card-number";
-import type { Card, NewsArticle, Product, Set, ShopEntry } from "@/lib/types";
+import type { Card, FavoriteEntry, NewsArticle, Product, Set, ShopEntry } from "@/lib/types";
 
 // Public read paths (homepage, shop, news) must never 500 the storefront
 // just because Supabase isn't configured yet or a query fails — they
@@ -279,12 +279,13 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
   }, null);
 }
 
-// The current signed-in user's favorited product ids, for marking hearts
-// filled in product grids — empty (not an error) when signed out.
+// The current signed-in user's favorited product/card ids, for marking
+// hearts filled in product grids and set checklists — empty (not an
+// error) when signed out.
 // ReadonlySet, not Set, because `Set` (the Pokémon TCG entity type) is
 // already imported into this module's type namespace, shadowing the
 // builtin generic — ReadonlySet is a distinct global identifier.
-export async function getFavoriteProductIds(): Promise<ReadonlySet<string>> {
+async function getFavoriteIds(column: "product_id" | "card_id"): Promise<ReadonlySet<string>> {
   return safe(async () => {
     const supabase = await createClient();
     const {
@@ -294,23 +295,48 @@ export async function getFavoriteProductIds(): Promise<ReadonlySet<string>> {
 
     const { data } = await supabase
       .from("favorites")
-      .select("product_id")
-      .eq("user_id", user.id);
-    return new Set((data ?? []).map((f) => f.product_id as string));
+      .select(column)
+      .eq("user_id", user.id)
+      .not(column, "is", null);
+    return new Set((data ?? []).map((f) => (f as Record<string, string>)[column]));
   }, new Set<string>());
 }
 
-export async function getFavoriteProducts(userId: string): Promise<Product[]> {
+export function getFavoriteProductIds(): Promise<ReadonlySet<string>> {
+  return getFavoriteIds("product_id");
+}
+
+export function getFavoriteCardIds(): Promise<ReadonlySet<string>> {
+  return getFavoriteIds("card_id");
+}
+
+// Every favorite for a user — a listed product, or a catalog card
+// favorited from a set's checklist before it had a listing — newest first.
+export async function getFavoriteEntries(userId: string): Promise<FavoriteEntry[]> {
   return safe(async () => {
     const supabase = await createClient();
     const { data } = await supabase
       .from("favorites")
-      .select("product:products(*, set:sets(*))")
+      .select("id, product:products(*, set:sets(*)), card:cards(*, set:sets(*))")
       .eq("user_id", userId)
       .order("created_at", { ascending: false });
-    return ((data ?? []) as unknown as { product: Product | null }[])
-      .map((f) => f.product)
-      .filter((p): p is Product => p !== null);
+
+    const rows = (data ?? []) as unknown as {
+      id: string;
+      product: Product | null;
+      card: (Card & { set: Set | null }) | null;
+    }[];
+
+    return rows
+      .map((row): FavoriteEntry | null => {
+        if (row.product) return { kind: "product", id: row.id, product: row.product };
+        if (row.card) {
+          const { set, ...card } = row.card;
+          return { kind: "card", id: row.id, card, set: set ?? null };
+        }
+        return null;
+      })
+      .filter((entry): entry is FavoriteEntry => entry !== null);
   }, []);
 }
 

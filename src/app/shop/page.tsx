@@ -4,7 +4,12 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { ProductCard } from "@/components/product-card";
 import { CardTile } from "@/components/card-tile";
 import { ShopFilters } from "@/components/shop-filters";
-import { getAllSets, getFavoriteProductIds, getShopEntries } from "@/lib/queries";
+import {
+  getAllSets,
+  getFavoriteCardIds,
+  getFavoriteProductIds,
+  getShopEntries,
+} from "@/lib/queries";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 
@@ -38,11 +43,12 @@ export default async function ShopPage({
     sort: (params.sort as never) ?? "card_number",
   };
 
-  const [entries, sets, locale, favoriteIds] = await Promise.all([
+  const [entries, sets, locale, favoriteIds, favoriteCardIds] = await Promise.all([
     getShopEntries(filters),
     getAllSets(),
     getLocale(),
     getFavoriteProductIds(),
+    getFavoriteCardIds(),
   ]);
   const dict = getDictionary(locale);
 
@@ -93,7 +99,12 @@ export default async function ShopPage({
                       favorited={favoriteIds.has(entry.product.id)}
                     />
                   ) : (
-                    <CardTile key={entry.id} card={entry.card} set={entry.set} />
+                    <CardTile
+                      key={entry.id}
+                      card={entry.card}
+                      set={entry.set}
+                      favorited={favoriteCardIds.has(entry.card.id)}
+                    />
                   ),
                 )}
               </div>

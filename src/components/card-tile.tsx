@@ -1,12 +1,21 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { RarityBadge } from "@/components/ui/rarity-badge";
+import { FavoriteButton } from "@/components/favorite-button";
 import type { Card, Set } from "@/lib/types";
 
 // A synced card with no matching product listing — shown in the shop grid
 // alongside real listings so browsing a set shows every card in it, not
 // just the ones someone happens to have for sale.
-export function CardTile({ card, set }: { card: Card; set: Set | null }) {
+export function CardTile({
+  card,
+  set,
+  favorited = false,
+}: {
+  card: Card;
+  set: Set | null;
+  favorited?: boolean;
+}) {
   const image = card.image_large ?? card.image_small;
   const content = (
     <>
@@ -45,18 +54,27 @@ export function CardTile({ card, set }: { card: Card; set: Set | null }) {
 
   if (!set) {
     return (
-      <div className="group flex flex-col overflow-hidden rounded-xl border border-border bg-surface opacity-90">
+      <div className="group relative flex flex-col overflow-hidden rounded-xl border border-border bg-surface opacity-90">
+        <FavoriteButton
+          cardId={card.id}
+          initialFavorited={favorited}
+          className="absolute right-2 top-2 z-10"
+        />
         {content}
       </div>
     );
   }
 
   return (
-    <Link
-      href={`/sets/${set.code}`}
-      className="group flex flex-col overflow-hidden rounded-xl border border-border bg-surface opacity-90 transition-colors hover:border-border hover:opacity-100"
-    >
-      {content}
-    </Link>
+    <div className="group relative flex flex-col overflow-hidden rounded-xl border border-border bg-surface opacity-90 transition-colors hover:border-border hover:opacity-100">
+      <FavoriteButton
+        cardId={card.id}
+        initialFavorited={favorited}
+        className="absolute right-2 top-2 z-10"
+      />
+      <Link href={`/sets/${set.code}`} className="flex flex-1 flex-col">
+        {content}
+      </Link>
+    </div>
   );
 }
