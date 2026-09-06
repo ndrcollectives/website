@@ -44,7 +44,7 @@ export default async function ProductDetailPage({ params }: Props) {
     sku: product.id,
     offers: {
       "@type": "Offer",
-      priceCurrency: "USD",
+      priceCurrency: "EUR",
       price: (product.price_cents / 100).toFixed(2),
       availability:
         product.inventory_count > 0
@@ -133,7 +133,6 @@ export default async function ProductDetailPage({ params }: Props) {
             <PriceTag
               cents={product.price_cents}
               mainClassName="text-3xl font-bold text-accent-yellow"
-              eurClassName="text-sm"
             />
             {product.compare_at_price_cents && (
               <span className="text-lg text-muted line-through">

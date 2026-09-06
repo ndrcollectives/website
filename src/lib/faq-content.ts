@@ -13,8 +13,7 @@ const en: FaqItem[] = [
   },
   {
     question: "What currency do I pay in?",
-    answer:
-      "All prices are in USD, which is what you're actually charged. The EUR amount shown next to prices is an approximate conversion for convenience, not a separate price.",
+    answer: "All prices are in EUR (€), which is what you're actually charged.",
   },
   {
     question: "How do you grade card condition?",
@@ -55,8 +54,7 @@ const nl: FaqItem[] = [
   },
   {
     question: "In welke valuta betaal ik?",
-    answer:
-      "Alle prijzen staan in USD, en dat is ook wat je daadwerkelijk betaalt. Het EUR-bedrag naast de prijzen is een indicatieve omrekening voor het gemak, geen aparte prijs.",
+    answer: "Alle prijzen staan in euro's (€), en dat is ook wat je daadwerkelijk betaalt.",
   },
   {
     question: "Hoe bepalen jullie de conditie van kaarten?",

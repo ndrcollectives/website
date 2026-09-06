@@ -198,8 +198,8 @@ export default async function AdminProductsPage({
         <Input name="card_number" placeholder="Card # (e.g. 004/102)" />
         <Input name="rarity" placeholder="Rarity" />
         <Input name="condition" placeholder="Condition (NM, LP, ...)" />
-        <Input name="price" type="number" step="0.01" placeholder="Price ($)" required />
-        <Input name="compare_at_price" type="number" step="0.01" placeholder="Compare-at price ($)" />
+        <Input name="price" type="number" step="0.01" placeholder="Price (€)" required />
+        <Input name="compare_at_price" type="number" step="0.01" placeholder="Compare-at price (€)" />
         <Input name="inventory_count" type="number" placeholder="Inventory count" />
         <Input
           name="images"

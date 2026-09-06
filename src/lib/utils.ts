@@ -5,20 +5,12 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+// cents is EUR — the store's one real currency (what Stripe charges).
 export function formatPrice(cents: number) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "USD",
-  }).format(cents / 100);
-}
-
-// cents is USD (the store's real currency) — rate converts to an
-// approximate EUR display figure, not a second real price.
-export function formatEUR(cents: number, usdToEurRate: number) {
-  return new Intl.NumberFormat("de-DE", {
-    style: "currency",
     currency: "EUR",
-  }).format((cents / 100) * usdToEurRate);
+  }).format(cents / 100);
 }
 
 export function formatDate(date: string | Date) {

@@ -53,7 +53,7 @@ export async function POST(request: Request) {
     }
     lineItems.push({
       price_data: {
-        currency: "usd",
+        currency: "eur",
         unit_amount: product.price_cents,
         product_data: {
           name: product.title,
@@ -72,7 +72,9 @@ export async function POST(request: Request) {
     line_items: lineItems,
     success_url: `${siteUrl}/order/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${siteUrl}/cart`,
-    shipping_address_collection: { allowed_countries: ["US", "CA", "GB", "AU"] },
+    shipping_address_collection: {
+      allowed_countries: ["NL", "BE", "DE", "FR", "US", "CA", "GB", "AU"],
+    },
     phone_number_collection: { enabled: true },
     customer_email: user?.email ?? undefined,
     metadata: {
