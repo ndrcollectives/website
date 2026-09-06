@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { ProductCard } from "@/components/product-card";
-import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
+import { ShopFilters } from "@/components/shop-filters";
 import { getAllSets, getProducts } from "@/lib/queries";
 
 export const metadata: Metadata = {
@@ -10,28 +8,6 @@ export const metadata: Metadata = {
   description:
     "Search and filter Pokémon TCG singles, booster boxes, ETBs, packs, and graded slabs by set, rarity, condition, and price.",
 };
-
-const PRODUCT_TYPES = [
-  { value: "single", label: "Single" },
-  { value: "sealed_box", label: "Booster Box" },
-  { value: "etb", label: "Elite Trainer Box" },
-  { value: "pack", label: "Booster Pack" },
-  { value: "graded_slab", label: "Graded Card / Slab" },
-];
-
-const RARITIES = [
-  "Common",
-  "Uncommon",
-  "Rare",
-  "Holo Rare",
-  "Ultra Rare",
-  "Illustration Rare",
-  "Special Illustration Rare",
-  "Secret Illustration Rare",
-  "Hyper Rare",
-];
-
-const CONDITIONS = ["M", "NM", "LP", "MP", "HP", "DMG"];
 
 type SearchParams = Record<string, string | undefined>;
 
@@ -66,108 +42,7 @@ export default async function ShopPage({
       </p>
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[260px_1fr]">
-        <form className="h-fit space-y-5 rounded-xl border border-border bg-surface p-4" method="get">
-          <div>
-            <label className="mb-1 block text-xs font-semibold uppercase text-muted">
-              Search
-            </label>
-            <Input name="search" defaultValue={params.search} placeholder="Charizard 004/102" />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-xs font-semibold uppercase text-muted">
-              Set / Expansion
-            </label>
-            <Select name="set" defaultValue={params.set ?? ""}>
-              <option value="">All sets</option>
-              {sets.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
-                </option>
-              ))}
-            </Select>
-          </div>
-
-          <div>
-            <label className="mb-1 block text-xs font-semibold uppercase text-muted">
-              Card Type
-            </label>
-            <Select name="product_type" defaultValue={params.product_type ?? ""}>
-              <option value="">All types</option>
-              {PRODUCT_TYPES.map((t) => (
-                <option key={t.value} value={t.value}>
-                  {t.label}
-                </option>
-              ))}
-            </Select>
-          </div>
-
-          <div>
-            <label className="mb-1 block text-xs font-semibold uppercase text-muted">
-              Rarity
-            </label>
-            <Select name="rarity" defaultValue={params.rarity ?? ""}>
-              <option value="">All rarities</option>
-              {RARITIES.map((r) => (
-                <option key={r} value={r}>
-                  {r}
-                </option>
-              ))}
-            </Select>
-          </div>
-
-          <div>
-            <label className="mb-1 block text-xs font-semibold uppercase text-muted">
-              Condition
-            </label>
-            <Select name="condition" defaultValue={params.condition ?? ""}>
-              <option value="">Any condition</option>
-              {CONDITIONS.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </Select>
-          </div>
-
-          <div>
-            <label className="mb-1 block text-xs font-semibold uppercase text-muted">
-              Price ($)
-            </label>
-            <div className="flex gap-2">
-              <Input
-                type="number"
-                name="min_price"
-                min={0}
-                defaultValue={params.min_price}
-                placeholder="Min"
-              />
-              <Input
-                type="number"
-                name="max_price"
-                min={0}
-                defaultValue={params.max_price}
-                placeholder="Max"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="mb-1 block text-xs font-semibold uppercase text-muted">
-              Sort By
-            </label>
-            <Select name="sort" defaultValue={params.sort ?? "newest"}>
-              <option value="newest">Newest Added</option>
-              <option value="price_asc">Price: Low to High</option>
-              <option value="price_desc">Price: High to Low</option>
-              <option value="card_number">Set Number</option>
-            </Select>
-          </div>
-
-          <Button type="submit" className="w-full">
-            Apply Filters
-          </Button>
-        </form>
+        <ShopFilters sets={sets} params={params} />
 
         <div>
           {products.length === 0 ? (
