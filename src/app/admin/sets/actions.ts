@@ -10,15 +10,17 @@ export async function createSet(formData: FormData) {
   await requireAdmin();
   const supabase = createAdminClient();
 
+  const releaseDate = String(formData.get("release_date"));
+
   const { error } = await supabase.from("sets").insert({
     name: String(formData.get("name")),
     code: String(formData.get("code")),
     era: String(formData.get("era")),
-    release_date: String(formData.get("release_date")),
+    release_date: releaseDate,
     total_cards: Number(formData.get("total_cards") ?? 0),
     logo_url: String(formData.get("logo_url") ?? "") || null,
     banner_url: String(formData.get("banner_url") ?? "") || null,
-    is_upcoming: formData.get("is_upcoming") === "on",
+    is_upcoming: new Date(releaseDate) > new Date(),
   });
 
   if (error) throw new Error(error.message);

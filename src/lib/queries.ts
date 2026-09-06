@@ -17,13 +17,18 @@ async function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
   }
 }
 
+// Filters by the actual release date rather than the stored `is_upcoming`
+// flag — that flag is only computed once, at sync or manual-entry time,
+// and never revisited, so a set synced months ago as "upcoming" would
+// stay flagged that way forever after it releases.
 export async function getUpcomingSets(limit = 6): Promise<Set[]> {
   return safe(async () => {
     const supabase = await createClient();
+    const today = new Date().toISOString().slice(0, 10);
     const { data } = await supabase
       .from("sets")
       .select("*")
-      .eq("is_upcoming", true)
+      .gt("release_date", today)
       .order("release_date", { ascending: true })
       .limit(limit);
     return (data as Set[]) ?? [];
