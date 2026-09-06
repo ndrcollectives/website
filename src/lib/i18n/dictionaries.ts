@@ -95,6 +95,11 @@ const en = {
   language: {
     label: "Language",
   },
+  theme: {
+    light: "Light",
+    dark: "Dark",
+    toggle: "Toggle light/dark theme",
+  },
 };
 
 type DeepStringify<T> = { [K in keyof T]: T[K] extends string ? string : DeepStringify<T[K]> };
@@ -191,6 +196,11 @@ const nl: Dictionary = {
   },
   language: {
     label: "Taal",
+  },
+  theme: {
+    light: "Licht",
+    dark: "Donker",
+    toggle: "Licht/donker thema wisselen",
   },
 };
 

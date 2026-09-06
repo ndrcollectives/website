@@ -16,12 +16,12 @@ export function LanguageSwitcher({ className }: { className?: string }) {
   return (
     <button
       onClick={() => setLocale(other)}
-      className={`flex items-center gap-1.5 rounded-lg p-2 text-sm font-medium hover:bg-surface-raised ${className ?? ""}`}
+      className={`flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-medium hover:border-accent-yellow/60 hover:bg-surface-raised ${className ?? ""}`}
       aria-label={dict.language.label}
       title={dict.language.label}
     >
-      <Languages className="h-5 w-5" />
-      <span className="hidden sm:inline">{LABELS[locale]}</span>
+      <Languages className="h-4 w-4" />
+      <span>{LABELS[locale]}</span>
     </button>
   );
 }
