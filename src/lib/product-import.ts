@@ -91,7 +91,7 @@ export type ProductInsert = {
   title: string;
   slug: string;
   product_type: "single" | "graded_slab";
-  set_id: string;
+  set_id: string | null;
   card_number: string;
   rarity: string | null;
   condition: string;
@@ -102,28 +102,76 @@ export type ProductInsert = {
 
 export type ImportSummary = {
   inserted: number;
-  skippedNoSet: string[];
+  importedWithoutSet: string[];
   skippedDuplicate: number;
   skippedNoPrice: number;
 };
 
-// setNameToId: the CSV's "Set" column matched (case-insensitively) to a
-// sets.id — there's no other stable key linking a portfolio export to a
-// specific synced set.
+// Older eras' "X Black Star Promos" sets are named by abbreviation in the
+// synced dataset (e.g. "SWSH Black Star Promos"), not the full era name a
+// collection tracker exports ("Sword & Shield Promo") — newer eras use
+// the full name ("Scarlet & Violet Black Star Promos"), which the plain
+// pattern match in resolveSetId already covers without needing this.
+const PROMO_ERA_ABBREVIATIONS: Record<string, string> = {
+  "sword & shield": "swsh",
+  "sun & moon": "sm",
+  "diamond & pearl": "dp",
+  "black & white": "bw",
+  "heartgold & soulsilver": "hgss",
+  "x & y": "xy",
+};
+
+// Tries an exact (case-insensitive) match first, then a couple of known
+// naming patterns collection trackers use that the synced catalog names
+// differently ("X Promo(s)" -> "X Black Star Promos", "McDonald's Promos
+// <year>" -> "McDonald's Collection <year>"). Returns undefined if the CSV's
+// set genuinely isn't in the synced catalog — that's expected for special
+// releases (jumbo cards, tins, worlds decks, misc bundles) the dataset
+// doesn't track as a "set"; those rows still get imported, just without a
+// set link or auto image. Deliberately has no generic alias table beyond
+// these narrow, well-grounded patterns — guessing a match to the wrong
+// real product (e.g. a reprint box mistaken for an unrelated anniversary
+// subset) is worse than leaving a row unlinked.
+function resolveSetId(csvSetName: string, byName: Map<string, string>): string | undefined {
+  const key = csvSetName.trim().toLowerCase();
+  if (byName.has(key)) return byName.get(key);
+
+  const promoMatch = key.match(/^(.*?)\s+promos?$/);
+  if (promoMatch) {
+    const era = promoMatch[1];
+    const abbreviation = PROMO_ERA_ABBREVIATIONS[era];
+    const candidate = byName.get(`${abbreviation ?? era} black star promos`);
+    if (candidate) return candidate;
+  }
+
+  const mcdonaldsMatch = key.match(/^mcdonald'?s promos (\d{4})$/);
+  if (mcdonaldsMatch) {
+    const candidate = byName.get(`mcdonald's collection ${mcdonaldsMatch[1]}`);
+    if (candidate) return candidate;
+  }
+
+  return undefined;
+}
+
+// allSets: every synced set (id, name) — resolveSetId needs the full list
+// for its pattern-based fallbacks, not just names appearing in this CSV.
 // cardImages: (set_id + number) -> that card's synced image, so a listing
 // gets a real photo without the admin pasting a URL by hand.
-// existingKeys: (set_id + number + condition + title) already listed, so
-// re-uploading the same/updated export doesn't create duplicate listings.
+// existingKeys: (set_id or "none" + number + condition + title) already
+// listed, so re-uploading the same/updated export doesn't create
+// duplicate listings.
 export function buildProductInserts(
   rows: CsvProductRow[],
-  setNameToId: Map<string, string>,
+  allSets: { id: string; name: string }[],
   cardImages: Map<string, string>,
   existingKeys: Set<string>,
 ): { inserts: ProductInsert[]; summary: ImportSummary } {
+  const byName = new Map(allSets.map((s) => [s.name.trim().toLowerCase(), s.id]));
+
   const inserts: ProductInsert[] = [];
   const summary: ImportSummary = {
     inserted: 0,
-    skippedNoSet: [],
+    importedWithoutSet: [],
     skippedDuplicate: 0,
     skippedNoPrice: 0,
   };
@@ -132,12 +180,9 @@ export function buildProductInserts(
   rows.forEach((row, index) => {
     if (!row.productName || !row.setName) return;
 
-    const setId = setNameToId.get(row.setName.trim().toLowerCase());
-    if (!setId) {
-      if (!summary.skippedNoSet.includes(row.setName)) {
-        summary.skippedNoSet.push(row.setName);
-      }
-      return;
+    const setId = resolveSetId(row.setName, byName) ?? null;
+    if (!setId && !summary.importedWithoutSet.includes(row.setName)) {
+      summary.importedWithoutSet.push(row.setName);
     }
 
     const isGraded = !!row.grade && row.grade.trim().toLowerCase() !== "ungraded";
@@ -157,7 +202,7 @@ export function buildProductInserts(
         : "";
     const title = `${row.productName}${varianceSuffix}`;
 
-    const dedupeKey = `${setId}::${row.cardNumber}::${condition}::${title}`;
+    const dedupeKey = `${setId ?? "none"}::${row.cardNumber}::${condition}::${title}`;
     if (existingKeys.has(dedupeKey) || seenThisBatch.has(dedupeKey)) {
       summary.skippedDuplicate += 1;
       return;
@@ -166,7 +211,9 @@ export function buildProductInserts(
 
     // cardImages is keyed by the synced catalog's bare number (e.g. "180"),
     // not the CSV's "180/217" — normalize before looking it up.
-    const image = cardImages.get(`${setId}::${normalizeCardNumber(row.cardNumber)}`);
+    const image = setId
+      ? cardImages.get(`${setId}::${normalizeCardNumber(row.cardNumber)}`)
+      : undefined;
 
     inserts.push({
       title,

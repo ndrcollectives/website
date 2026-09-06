@@ -83,14 +83,11 @@ export async function importProductsCsv(formData: FormData) {
     const text = await file.text();
     const rows = parseProductCsv(text);
 
-    const setNames = Array.from(new Set(rows.map((r) => r.setName).filter(Boolean)));
-    const { data: setsData } = setNames.length
-      ? await supabase.from("sets").select("id, name").in("name", setNames)
-      : { data: [] };
-    const setNameToId = new Map(
-      (setsData ?? []).map((s) => [s.name.trim().toLowerCase(), s.id as string]),
-    );
-    const setIds = Array.from(setNameToId.values());
+    // Fetching every synced set (not just ones named in this CSV) since
+    // resolveSetId's alias/pattern fallbacks need the full catalog to
+    // check against, not just exact-name hits.
+    const { data: allSets } = await supabase.from("sets").select("id, name");
+    const setIds = (allSets ?? []).map((s) => s.id as string);
 
     const { data: cardsData } = setIds.length
       ? await supabase
@@ -104,16 +101,16 @@ export async function importProductsCsv(formData: FormData) {
         .map((c) => [`${c.set_id}::${c.number}`, (c.image_large ?? c.image_small) as string]),
     );
 
-    const { data: existingData } = setIds.length
-      ? await supabase.from("products").select("set_id, card_number, condition, title").in("set_id", setIds)
-      : { data: [] };
+    const { data: existingData } = await supabase
+      .from("products")
+      .select("set_id, card_number, condition, title");
     const existingKeys = new Set(
-      (existingData ?? []).map((p) => `${p.set_id}::${p.card_number}::${p.condition}::${p.title}`),
+      (existingData ?? []).map((p) => `${p.set_id ?? "none"}::${p.card_number}::${p.condition}::${p.title}`),
     );
 
     const { inserts, summary: builtSummary } = buildProductInserts(
       rows,
-      setNameToId,
+      allSets ?? [],
       cardImages,
       existingKeys,
     );
@@ -134,7 +131,9 @@ export async function importProductsCsv(formData: FormData) {
   const params = new URLSearchParams({ imported: String(summary.inserted) });
   if (summary.skippedDuplicate) params.set("skippedDuplicate", String(summary.skippedDuplicate));
   if (summary.skippedNoPrice) params.set("skippedNoPrice", String(summary.skippedNoPrice));
-  if (summary.skippedNoSet.length) params.set("skippedNoSet", summary.skippedNoSet.join(", "));
+  if (summary.importedWithoutSet.length) {
+    params.set("importedWithoutSet", summary.importedWithoutSet.join(", "));
+  }
   redirect(`/admin/products?${params.toString()}`);
 }
 

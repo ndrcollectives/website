@@ -11,7 +11,7 @@ type SearchParams = {
   importError?: string;
   skippedDuplicate?: string;
   skippedNoPrice?: string;
-  skippedNoSet?: string;
+  importedWithoutSet?: string;
   backfilled?: string;
   noNumberMatch?: string;
   unsyncedSets?: string;
@@ -28,7 +28,7 @@ export default async function AdminProductsPage({
     importError,
     skippedDuplicate,
     skippedNoPrice,
-    skippedNoSet,
+    importedWithoutSet,
     backfilled,
     noNumberMatch,
     unsyncedSets,
@@ -98,9 +98,12 @@ export default async function AdminProductsPage({
               Skipped {skippedNoPrice} row{skippedNoPrice === "1" ? "" : "s"} with no price.
             </p>
           )}
-          {skippedNoSet && (
+          {importedWithoutSet && (
             <p className="mt-1 text-xs">
-              Skipped rows for sets not found: {skippedNoSet}. Sync or add these sets first.
+              Imported without a set link (no matching synced set, so no
+              auto image or set-page listing): {importedWithoutSet}. Add
+              these as sets on the Sets page for full support, or leave
+              them as-is — they still show up in the shop.
             </p>
           )}
         </div>
