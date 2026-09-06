@@ -5,7 +5,8 @@ import Link from "next/link";
 import { X, Minus, Plus, ShoppingBag } from "lucide-react";
 import { useCart } from "@/components/cart/cart-context";
 import { buttonVariants } from "@/components/ui/button";
-import { cn, formatPrice } from "@/lib/utils";
+import { PriceTag } from "@/components/price-tag";
+import { cn } from "@/lib/utils";
 
 export function CartDrawer() {
   const { items, isOpen, closeCart, removeItem, setQuantity, subtotalCents } =
@@ -69,7 +70,7 @@ export function CartDrawer() {
                 {item.condition && (
                   <p className="text-xs text-muted">{item.condition}</p>
                 )}
-                <div className="mt-auto flex items-center justify-between">
+                <div className="mt-auto flex items-end justify-between">
                   <div className="flex items-center gap-2 rounded-md border border-border">
                     <button
                       className="p-1"
@@ -93,9 +94,11 @@ export function CartDrawer() {
                       <Plus className="h-3 w-3" />
                     </button>
                   </div>
-                  <span className="text-sm font-semibold text-accent-yellow">
-                    {formatPrice(item.priceCents * item.quantity)}
-                  </span>
+                  <PriceTag
+                    cents={item.priceCents * item.quantity}
+                    className="items-end"
+                    mainClassName="text-sm font-semibold text-accent-yellow"
+                  />
                 </div>
               </div>
             </div>
@@ -103,9 +106,9 @@ export function CartDrawer() {
         </div>
 
         <div className="absolute bottom-0 w-full border-t border-border p-4">
-          <div className="mb-3 flex items-center justify-between text-sm">
+          <div className="mb-3 flex items-end justify-between text-sm">
             <span className="text-muted">Subtotal</span>
-            <span className="font-semibold">{formatPrice(subtotalCents)}</span>
+            <PriceTag cents={subtotalCents} className="items-end" mainClassName="font-semibold" />
           </div>
           <Link
             href="/cart"

@@ -6,7 +6,7 @@ import { useState } from "react";
 import { Minus, Plus, X } from "lucide-react";
 import { useCart } from "@/components/cart/cart-context";
 import { Button } from "@/components/ui/button";
-import { formatPrice } from "@/lib/utils";
+import { PriceTag } from "@/components/price-tag";
 
 export default function CartPage() {
   const { items, removeItem, setQuantity, subtotalCents } = useCart();
@@ -82,7 +82,7 @@ export default function CartPage() {
                 {item.condition && (
                   <p className="text-sm text-muted">{item.condition}</p>
                 )}
-                <div className="mt-auto flex items-center justify-between">
+                <div className="mt-auto flex items-end justify-between">
                   <div className="flex items-center gap-2 rounded-md border border-border">
                     <button
                       className="p-2"
@@ -98,9 +98,11 @@ export default function CartPage() {
                       <Plus className="h-3 w-3" />
                     </button>
                   </div>
-                  <span className="font-semibold text-accent-yellow">
-                    {formatPrice(item.priceCents * item.quantity)}
-                  </span>
+                  <PriceTag
+                    cents={item.priceCents * item.quantity}
+                    className="items-end"
+                    mainClassName="font-semibold text-accent-yellow"
+                  />
                 </div>
               </div>
             </div>
@@ -109,9 +111,9 @@ export default function CartPage() {
 
         <div className="h-fit rounded-xl border border-border bg-surface p-6">
           <h2 className="mb-4 font-semibold">Order Summary</h2>
-          <div className="flex items-center justify-between text-sm">
+          <div className="flex items-end justify-between text-sm">
             <span className="text-muted">Subtotal</span>
-            <span>{formatPrice(subtotalCents)}</span>
+            <PriceTag cents={subtotalCents} className="items-end" />
           </div>
           <p className="mt-1 text-xs text-muted">
             Shipping & taxes calculated at checkout.

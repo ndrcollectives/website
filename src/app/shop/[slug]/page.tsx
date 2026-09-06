@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { RarityBadge } from "@/components/ui/rarity-badge";
 import { HoloCard } from "@/components/holo-card";
 import { AddToCartPanel } from "@/components/add-to-cart-panel";
+import { PriceTag } from "@/components/price-tag";
 import { getProductBySlug } from "@/lib/queries";
 import { formatPrice } from "@/lib/utils";
 
@@ -118,9 +119,11 @@ export default async function ProductDetailPage({ params }: Props) {
           )}
 
           <div className="mt-4 flex items-baseline gap-3">
-            <span className="text-3xl font-bold text-accent-yellow">
-              {formatPrice(product.price_cents)}
-            </span>
+            <PriceTag
+              cents={product.price_cents}
+              mainClassName="text-3xl font-bold text-accent-yellow"
+              eurClassName="text-sm"
+            />
             {product.compare_at_price_cents && (
               <span className="text-lg text-muted line-through">
                 {formatPrice(product.compare_at_price_cents)}

@@ -6,6 +6,7 @@ import { ShoppingCart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { RarityBadge } from "@/components/ui/rarity-badge";
 import { useCart } from "@/components/cart/cart-context";
+import { PriceTag } from "@/components/price-tag";
 import { formatPrice } from "@/lib/utils";
 import type { Product } from "@/lib/types";
 
@@ -59,9 +60,7 @@ export function ProductCard({ product }: { product: Product }) {
 
         <div className="mt-auto flex items-center justify-between pt-2">
           <div className="flex flex-col">
-            <span className="font-bold text-accent-yellow">
-              {formatPrice(product.price_cents)}
-            </span>
+            <PriceTag cents={product.price_cents} mainClassName="font-bold text-accent-yellow" />
             {product.compare_at_price_cents && (
               <span className="text-xs text-muted line-through">
                 {formatPrice(product.compare_at_price_cents)}
