@@ -94,30 +94,12 @@ export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
   const [query, setQuery] = useState("");
   const router = useRouter();
   const suggestions = useCardSuggestions(query);
-  const mobileMenuRef = useRef<HTMLElement>(null);
-  const mobileToggleRef = useRef<HTMLButtonElement>(null);
 
   const NAV_LINKS = [
     { href: "/shop", label: dict.nav.shop },
     { href: "/sets", label: dict.nav.sets },
     { href: "/news", label: dict.nav.news },
   ];
-
-  useEffect(() => {
-    if (!mobileOpen) return;
-    function handleClickOutside(e: MouseEvent) {
-      const target = e.target as Node;
-      if (
-        mobileMenuRef.current &&
-        !mobileMenuRef.current.contains(target) &&
-        !mobileToggleRef.current?.contains(target)
-      ) {
-        setMobileOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [mobileOpen]);
 
   function handleSearch(e: FormEvent) {
     e.preventDefault();
@@ -137,11 +119,11 @@ export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
   }
 
   return (
+    <>
     <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur">
       <div className="relative mx-auto flex h-16 max-w-7xl items-center gap-2 px-4">
         <div className="flex shrink-0 items-center gap-6">
           <button
-            ref={mobileToggleRef}
             className="rounded-lg p-2 hover:bg-surface-raised md:hidden"
             onClick={() => {
               setMobileOpen((v) => !v);
@@ -224,30 +206,65 @@ export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
         </div>
       )}
 
-      {mobileOpen && (
-        <nav
-          ref={mobileMenuRef}
-          className="absolute left-4 top-full z-40 mt-2 flex max-w-[calc(100vw-2rem)] flex-wrap gap-2 rounded-lg border border-border bg-surface-raised/95 p-3 shadow-lg backdrop-blur-xl md:hidden"
-        >
-          {NAV_LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={() => setMobileOpen(false)}
-              className="rounded-lg border border-border px-3 py-1.5 text-sm font-medium hover:border-accent-yellow/60 hover:bg-surface"
-            >
-              {link.label}
-            </Link>
-          ))}
-          <Link
-            href={isSignedIn ? "/account" : "/sign-in"}
-            onClick={() => setMobileOpen(false)}
-            className="rounded-lg border border-border px-3 py-1.5 text-sm font-medium hover:border-accent-yellow/60 hover:bg-surface"
-          >
-            {isSignedIn ? dict.nav.myAccount : dict.nav.signIn}
-          </Link>
-        </nav>
-      )}
     </header>
+
+    {/* Rendered outside <header> — that element's backdrop-blur creates a
+        containing block for `fixed` descendants in some browsers, which
+        would trap this drawer inside the 64px header bar instead of the
+        viewport (the same reason CartDrawer is a top-level sibling, not
+        nested inside Navbar). */}
+    {mobileOpen && (
+      <div
+        className="fixed inset-0 z-40 bg-black/60 md:hidden"
+        onClick={() => setMobileOpen(false)}
+        aria-hidden
+      />
+    )}
+    <aside
+      className={`fixed left-0 top-0 z-50 h-full w-[85vw] max-w-xs transform border-r border-border bg-surface transition-transform duration-300 md:hidden ${
+        mobileOpen ? "translate-x-0" : "-translate-x-full"
+      }`}
+    >
+      <div className="flex items-center justify-between border-b border-border p-4">
+        <Link
+          href="/"
+          onClick={() => setMobileOpen(false)}
+          className="flex items-center gap-2 font-bold"
+        >
+          <Logomark />
+          <span className="text-sm">NDR Collectives</span>
+        </Link>
+        <button
+          onClick={() => setMobileOpen(false)}
+          className="rounded-lg p-2 hover:bg-surface-raised"
+          aria-label={dict.nav.toggleMenu}
+        >
+          <X className="h-5 w-5" />
+        </button>
+      </div>
+
+      <nav className="flex flex-col p-2">
+        {NAV_LINKS.map((link) => (
+          <Link
+            key={link.href}
+            href={link.href}
+            onClick={() => setMobileOpen(false)}
+            className="rounded-lg px-3 py-3 text-base font-medium hover:bg-surface-raised"
+          >
+            {link.label}
+          </Link>
+        ))}
+        <div className="my-2 border-t border-border" />
+        <Link
+          href={isSignedIn ? "/account" : "/sign-in"}
+          onClick={() => setMobileOpen(false)}
+          className="flex items-center gap-2 rounded-lg px-3 py-3 text-base font-medium hover:bg-surface-raised"
+        >
+          <User className="h-4 w-4" />
+          {isSignedIn ? dict.nav.myAccount : dict.nav.signIn}
+        </Link>
+      </nav>
+    </aside>
+    </>
   );
 }
