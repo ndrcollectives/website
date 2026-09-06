@@ -135,6 +135,12 @@ export type OrderItem = {
   product?: Product;
 };
 
+// A shop grid entry is either a real listing (with price/inventory) or a
+// synced card that has no matching listing yet — see getShopEntries.
+export type ShopEntry =
+  | { kind: "product"; id: string; product: Product }
+  | { kind: "card"; id: string; card: Card; set: Set | null };
+
 export type CartItem = {
   productId: string;
   slug: string;

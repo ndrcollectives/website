@@ -34,6 +34,11 @@ export function ProductCard({ product }: { product: Product }) {
             Pre-order
           </Badge>
         )}
+        {!product.is_preorder && product.inventory_count === 0 && (
+          <Badge variant="default" className="absolute left-2 top-2">
+            Sold Out
+          </Badge>
+        )}
         {product.inventory_count <= 3 && !product.is_preorder && product.inventory_count > 0 && (
           <Badge variant="red" className="absolute left-2 top-2">
             Only {product.inventory_count} left

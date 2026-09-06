@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { isNextControlFlowError } from "@/lib/supabase/errors";
-import type { Card, NewsArticle, Product, Set } from "@/lib/types";
+import type { Card, NewsArticle, Product, Set, ShopEntry } from "@/lib/types";
 
 // Public read paths (homepage, shop, news) must never 500 the storefront
 // just because Supabase isn't configured yet or a query fails — they
@@ -132,6 +132,79 @@ export async function getProducts(filters: ShopFilters = {}): Promise<Product[]>
     }
 
     return products;
+  }, []);
+}
+
+// Cards that have no matching product listing yet don't have a price or
+// condition, so merging them in only makes sense when browsing singles
+// with no price/condition filter active — those filters describe a real
+// listing, not a card that isn't for sale.
+function canIncludeUnlistedCards(filters: ShopFilters): boolean {
+  return (
+    (!filters.productType || filters.productType === "single") &&
+    filters.minPrice == null &&
+    filters.maxPrice == null &&
+    !filters.condition
+  );
+}
+
+// Merging in literally every synced card with no filter at all would mean
+// tens of thousands of rows on one page — cap it, and only do the merge
+// once the browse is scoped by a set or a search term.
+const UNLISTED_CARDS_LIMIT = 120;
+
+// Powers the shop grid: every listed product, plus (when scoped to a set
+// or search, and browsing singles) any card from the synced catalog that
+// doesn't have a matching "single" listing — rendered as an
+// unavailable/sold-out tile instead of being left out of the catalog.
+export async function getShopEntries(filters: ShopFilters = {}): Promise<ShopEntry[]> {
+  return safe(async () => {
+    const products = await getProducts(filters);
+    const entries: ShopEntry[] = products.map((p) => ({
+      kind: "product" as const,
+      id: p.id,
+      product: p,
+    }));
+
+    if (!canIncludeUnlistedCards(filters) || (!filters.setId && !filters.search)) {
+      return entries;
+    }
+
+    const supabase = await createClient();
+    let cardQuery = supabase
+      .from("cards")
+      .select("*, set:sets(*)")
+      .order("name", { ascending: true })
+      .limit(UNLISTED_CARDS_LIMIT);
+
+    if (filters.setId) cardQuery = cardQuery.eq("set_id", filters.setId);
+    if (filters.rarity) cardQuery = cardQuery.eq("rarity", filters.rarity);
+    if (filters.search) cardQuery = cardQuery.ilike("name", `%${filters.search}%`);
+
+    const { data } = await cardQuery;
+    const cards = (data as (Card & { set: Set | null })[]) ?? [];
+
+    const listedKeys = new Set(
+      products
+        .filter((p) => p.product_type === "single" && p.set_id && p.card_number)
+        .map((p) => `${p.set_id}::${p.card_number}`),
+    );
+
+    for (const card of cards) {
+      const key = `${card.set_id}::${card.number}`;
+      if (listedKeys.has(key)) continue;
+      entries.push({ kind: "card" as const, id: card.id, card, set: card.set ?? null });
+    }
+
+    if (filters.sort === "card_number") {
+      entries.sort((a, b) => {
+        const numA = a.kind === "product" ? (a.product.card_number ?? "") : a.card.number;
+        const numB = b.kind === "product" ? (b.product.card_number ?? "") : b.card.number;
+        return numA.localeCompare(numB, undefined, { numeric: true });
+      });
+    }
+
+    return entries;
   }, []);
 }
 
