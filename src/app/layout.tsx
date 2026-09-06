@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { CartProvider } from "@/components/cart/cart-context";
 import { CartDrawer } from "@/components/cart/cart-drawer";
@@ -54,8 +55,15 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
       <body className="flex min-h-full flex-col">
+        <Script id="theme-init" strategy="beforeInteractive">
+          {`try {
+            var t = localStorage.getItem("ndr-theme");
+            if (t === "light") document.documentElement.dataset.theme = "light";
+          } catch (e) {}`}
+        </Script>
         <CartProvider>
           <Navbar isSignedIn={isSignedIn} />
           <main className="flex-1">{children}</main>

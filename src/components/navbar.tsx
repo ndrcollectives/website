@@ -7,6 +7,7 @@ import { Menu, Search, ShoppingCart, User, X } from "lucide-react";
 import { useCart } from "@/components/cart/cart-context";
 import { Input } from "@/components/ui/input";
 import { Logomark } from "@/components/logomark";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const NAV_LINKS = [
   { href: "/shop", label: "Shop" },
@@ -61,6 +62,7 @@ export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
         </form>
 
         <div className="ml-auto flex items-center gap-2 md:ml-0">
+          <ThemeToggle />
           <Link
             href={isSignedIn ? "/account" : "/sign-in"}
             className="hidden rounded-lg p-2 hover:bg-surface-raised md:block"
