@@ -7,8 +7,6 @@ import { Menu, Search, ShoppingCart, User, X } from "lucide-react";
 import { useCart } from "@/components/cart/cart-context";
 import { Input } from "@/components/ui/input";
 import { Logomark } from "@/components/logomark";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { LanguageSwitcher } from "@/components/language-switcher";
 import { useCardSuggestions, type CardSuggestion } from "@/hooks/use-card-suggestions";
 import { useLanguage } from "@/lib/i18n/language-context";
 
@@ -146,8 +144,6 @@ export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
         />
 
         <div className="ml-auto flex items-center gap-2 md:ml-0">
-          <LanguageSwitcher className="hidden md:flex" />
-          <ThemeToggle />
           <Link
             href={isSignedIn ? "/account" : "/sign-in"}
             className="hidden rounded-lg p-2 hover:bg-surface-raised md:block"
@@ -206,7 +202,6 @@ export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
             >
               {isSignedIn ? dict.nav.myAccount : dict.nav.signIn}
             </Link>
-            <LanguageSwitcher className="justify-start px-0" />
           </nav>
         </div>
       )}
