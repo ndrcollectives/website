@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { isNextControlFlowError } from "@/lib/supabase/errors";
+import { normalizeCardNumber } from "@/lib/card-number";
 import type { Card, NewsArticle, Product, Set, ShopEntry } from "@/lib/types";
 
 // Public read paths (homepage, shop, news) must never 500 the storefront
@@ -184,10 +185,14 @@ export async function getShopEntries(filters: ShopFilters = {}): Promise<ShopEnt
     const { data } = await cardQuery;
     const cards = (data as (Card & { set: Set | null })[]) ?? [];
 
+    // Products store the card number as entered (often "180/217"), while
+    // the synced catalog's `number` is bare ("180") — normalize the
+    // product side so a listed card isn't also shown as an unavailable
+    // placeholder.
     const listedKeys = new Set(
       products
         .filter((p) => p.product_type === "single" && p.set_id && p.card_number)
-        .map((p) => `${p.set_id}::${p.card_number}`),
+        .map((p) => `${p.set_id}::${normalizeCardNumber(p.card_number as string)}`),
     );
 
     for (const card of cards) {

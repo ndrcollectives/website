@@ -5,6 +5,7 @@ import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/utils";
 import {
+  backfillProductImages,
   createProduct,
   deleteProduct,
   importProductsCsv,
@@ -17,6 +18,7 @@ type SearchParams = {
   skippedDuplicate?: string;
   skippedNoPrice?: string;
   skippedNoSet?: string;
+  backfilled?: string;
 };
 
 export default async function AdminProductsPage({
@@ -25,7 +27,7 @@ export default async function AdminProductsPage({
   searchParams: Promise<SearchParams>;
 }) {
   await requireAdmin();
-  const { imported, importError, skippedDuplicate, skippedNoPrice, skippedNoSet } =
+  const { imported, importError, skippedDuplicate, skippedNoPrice, skippedNoSet, backfilled } =
     await searchParams;
   const supabase = createAdminClient();
 
@@ -63,6 +65,24 @@ export default async function AdminProductsPage({
           {importError}
         </p>
       )}
+      {backfilled && (
+        <p className="mt-4 rounded-lg border border-accent-yellow/40 bg-accent-yellow/10 p-3 text-sm text-accent-yellow">
+          {backfilled === "0"
+            ? "No listings needed fixing — everything with a matching card already has an image."
+            : `Added an image to ${backfilled} listing${backfilled === "1" ? "" : "s"} from the synced card catalog.`}
+        </p>
+      )}
+
+      <form action={backfillProductImages} className="mt-6">
+        <Button type="submit" variant="secondary">
+          Fix Missing Images
+        </Button>
+        <p className="mt-2 text-xs text-muted">
+          Adds artwork from the synced card catalog to any listing that has a
+          set + card number but no image yet — safe to run anytime, only
+          touches listings with no image.
+        </p>
+      </form>
 
       <form
         action={importProductsCsv}

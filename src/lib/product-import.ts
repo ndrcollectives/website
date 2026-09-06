@@ -5,6 +5,7 @@
 // action already has to fetch (set ids, card images, existing listings)
 // rather than querying Supabase itself.
 import { parseCsv } from "@/lib/csv";
+import { normalizeCardNumber } from "@/lib/card-number";
 
 export type CsvProductRow = {
   setName: string;
@@ -163,7 +164,9 @@ export function buildProductInserts(
     }
     seenThisBatch.add(dedupeKey);
 
-    const image = cardImages.get(`${setId}::${row.cardNumber}`);
+    // cardImages is keyed by the synced catalog's bare number (e.g. "180"),
+    // not the CSV's "180/217" — normalize before looking it up.
+    const image = cardImages.get(`${setId}::${normalizeCardNumber(row.cardNumber)}`);
 
     inserts.push({
       title,

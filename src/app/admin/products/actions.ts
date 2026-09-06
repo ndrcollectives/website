@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { buildProductInserts, parseProductCsv, type ImportSummary } from "@/lib/product-import";
+import { normalizeCardNumber } from "@/lib/card-number";
 
 function slugify(title: string) {
   return title
@@ -135,6 +136,62 @@ export async function importProductsCsv(formData: FormData) {
   if (summary.skippedNoPrice) params.set("skippedNoPrice", String(summary.skippedNoPrice));
   if (summary.skippedNoSet.length) params.set("skippedNoSet", summary.skippedNoSet.join(", "));
   redirect(`/admin/products?${params.toString()}`);
+}
+
+// Fixes up products that were listed with no image but do have a set +
+// card number that matches a synced card — e.g. CSV imports done before
+// the number-format mismatch ("180/217" vs the catalog's bare "180") was
+// fixed. Safe to re-run; only touches rows with an empty images array.
+export async function backfillProductImages() {
+  await requireAdmin();
+  const supabase = createAdminClient();
+
+  const { data: candidates } = await supabase
+    .from("products")
+    .select("id, set_id, card_number, images")
+    .not("set_id", "is", null)
+    .not("card_number", "is", null);
+
+  const targets = (candidates ?? []).filter((p) => !p.images || p.images.length === 0);
+
+  if (targets.length === 0) {
+    redirect("/admin/products?backfilled=0");
+  }
+
+  const setIds = Array.from(new Set(targets.map((p) => p.set_id as string)));
+  const { data: cardsData } = await supabase
+    .from("cards")
+    .select("set_id, number, image_large, image_small")
+    .in("set_id", setIds);
+
+  const cardImages = new Map(
+    (cardsData ?? [])
+      .filter((c) => c.image_large || c.image_small)
+      .map((c) => [`${c.set_id}::${c.number}`, (c.image_large ?? c.image_small) as string]),
+  );
+
+  const matched = targets
+    .map((p) => ({
+      id: p.id as string,
+      image: cardImages.get(`${p.set_id}::${normalizeCardNumber(p.card_number as string)}`),
+    }))
+    .filter((p): p is { id: string; image: string } => !!p.image);
+
+  // Update in bounded-concurrency batches rather than one at a time —
+  // each row gets a different image, so this can't be a single bulk query.
+  const BATCH_SIZE = 20;
+  let updated = 0;
+  for (let i = 0; i < matched.length; i += BATCH_SIZE) {
+    const batch = matched.slice(i, i + BATCH_SIZE);
+    const results = await Promise.all(
+      batch.map((p) => supabase.from("products").update({ images: [p.image] }).eq("id", p.id)),
+    );
+    updated += results.filter((r) => !r.error).length;
+  }
+
+  revalidatePath("/admin/products");
+  revalidatePath("/shop");
+  redirect(`/admin/products?backfilled=${updated}`);
 }
 
 export async function deleteProduct(formData: FormData) {
