@@ -82,18 +82,52 @@ export async function getFeaturedProducts(limit = 8): Promise<Product[]> {
   }, []);
 }
 
-// Powers the homepage's "Just Added" ticker — the most recently listed
-// products regardless of featured/inventory status, so it reflects what
-// was actually just added to the catalog.
-export async function getRecentProducts(limit = 10): Promise<Product[]> {
+function shuffle<T>(items: T[]): T[] {
+  const shuffled = [...items];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+// Bulk CSV imports insert a card's variants (e.g. "Absol" and
+// "Absol · Reverse Holofoil") back-to-back with near-identical
+// timestamps, so a plain "most recent" query clumps the same Pokémon —
+// and often the same rarity — together. Strip the variant suffix to
+// compare on the base card name.
+function baseProductName(title: string): string {
+  return title.split(" · ")[0].trim();
+}
+
+// Powers the homepage's "Just Added" ticker — pulls a larger recent pool,
+// shuffles it, and prefers one card per distinct name before filling any
+// remaining slots from the rest, so the result reads as a varied mix of
+// different cards and rarities rather than one card's run of variants.
+export async function getRecentProducts(limit = 10, poolSize = 60): Promise<Product[]> {
   return safe(async () => {
     const supabase = await createClient();
     const { data } = await supabase
       .from("products")
       .select("*, set:sets(*)")
       .order("created_at", { ascending: false })
-      .limit(limit);
-    return (data as Product[]) ?? [];
+      .limit(poolSize);
+    const pool = shuffle((data as Product[]) ?? []);
+
+    const seenNames = new Set<string>();
+    const primary: Product[] = [];
+    const rest: Product[] = [];
+    for (const product of pool) {
+      const name = baseProductName(product.title);
+      if (seenNames.has(name)) {
+        rest.push(product);
+      } else {
+        seenNames.add(name);
+        primary.push(product);
+      }
+    }
+
+    return [...primary, ...rest].slice(0, limit);
   }, []);
 }
 
