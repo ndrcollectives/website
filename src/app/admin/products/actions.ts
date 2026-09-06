@@ -231,3 +231,36 @@ export async function deleteProduct(formData: FormData) {
   revalidatePath("/admin/products");
   revalidatePath("/shop");
 }
+
+// Deletes a checked set of listings in one query — backs the "Delete
+// Selected" bulk action.
+export async function deleteProducts(formData: FormData) {
+  await requireAdmin();
+  const supabase = createAdminClient();
+
+  const ids = String(formData.get("ids") ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (ids.length === 0) return;
+
+  const { error } = await supabase.from("products").delete().in("id", ids);
+  if (error) throw new Error(error.message);
+  revalidatePath("/admin/products");
+  revalidatePath("/shop");
+}
+
+// Deletes every listing for one set — backs the per-group "Delete All"
+// button so clearing out a bad CSV import doesn't take one-by-one clicks.
+export async function deleteProductsBySet(formData: FormData) {
+  await requireAdmin();
+  const supabase = createAdminClient();
+
+  const setId = String(formData.get("set_id") ?? "");
+  if (!setId) return;
+
+  const { error } = await supabase.from("products").delete().eq("set_id", setId);
+  if (error) throw new Error(error.message);
+  revalidatePath("/admin/products");
+  revalidatePath("/shop");
+}

@@ -3,14 +3,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { formatPrice } from "@/lib/utils";
-import {
-  backfillProductImages,
-  createProduct,
-  deleteProduct,
-  importProductsCsv,
-  updateProductInventory,
-} from "./actions";
+import { ProductTable } from "@/components/admin/product-table";
+import { backfillProductImages, createProduct, importProductsCsv } from "./actions";
 
 type SearchParams = {
   imported?: string;
@@ -42,9 +36,50 @@ export default async function AdminProductsPage({
   const supabase = createAdminClient();
 
   const [{ data: products }, { data: sets }] = await Promise.all([
-    supabase.from("products").select("*, set:sets(name)").order("created_at", { ascending: false }),
+    supabase
+      .from("products")
+      .select("*, set:sets(name)")
+      .order("created_at", { ascending: false }),
     supabase.from("sets").select("id, name").order("name"),
   ]);
+
+  type ProductRow = {
+    id: string;
+    title: string;
+    price_cents: number;
+    inventory_count: number;
+  };
+  type ProductGroup = {
+    key: string;
+    setId: string | null;
+    setName: string;
+    products: ProductRow[];
+  };
+
+  const groupsByKey = new Map<string, ProductGroup>();
+  for (const p of products ?? []) {
+    const key = p.set_id ?? "none";
+    const row: ProductRow = {
+      id: p.id,
+      title: p.title,
+      price_cents: p.price_cents,
+      inventory_count: p.inventory_count,
+    };
+    const group = groupsByKey.get(key);
+    if (group) {
+      group.products.push(row);
+    } else {
+      groupsByKey.set(key, {
+        key,
+        setId: p.set_id,
+        setName: p.set?.name ?? "No set",
+        products: [row],
+      });
+    }
+  }
+  const groups = Array.from(groupsByKey.values()).sort((a, b) =>
+    a.setName.localeCompare(b.setName),
+  );
 
   return (
     <div>
@@ -180,50 +215,7 @@ export default async function AdminProductsPage({
         </Button>
       </form>
 
-      <div className="mt-8 overflow-x-auto rounded-xl border border-border">
-        <table className="w-full text-sm">
-          <thead className="bg-surface-raised text-left text-muted">
-            <tr>
-              <th className="p-3">Title</th>
-              <th className="p-3">Set</th>
-              <th className="p-3">Price</th>
-              <th className="p-3">Inventory</th>
-              <th className="p-3" />
-            </tr>
-          </thead>
-          <tbody>
-            {products?.map((p) => (
-              <tr key={p.id} className="border-t border-border">
-                <td className="p-3">{p.title}</td>
-                <td className="p-3 text-muted">{p.set?.name ?? "—"}</td>
-                <td className="p-3">{formatPrice(p.price_cents)}</td>
-                <td className="p-3">
-                  <form action={updateProductInventory} className="flex items-center gap-2">
-                    <input type="hidden" name="id" value={p.id} />
-                    <Input
-                      name="inventory_count"
-                      type="number"
-                      defaultValue={p.inventory_count}
-                      className="h-8 w-20"
-                    />
-                    <Button size="sm" variant="secondary" type="submit">
-                      Save
-                    </Button>
-                  </form>
-                </td>
-                <td className="p-3">
-                  <form action={deleteProduct}>
-                    <input type="hidden" name="id" value={p.id} />
-                    <Button size="sm" variant="destructive" type="submit">
-                      Delete
-                    </Button>
-                  </form>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <ProductTable groups={groups} />
     </div>
   );
 }
