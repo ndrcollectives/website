@@ -1,10 +1,31 @@
 import { NextResponse } from "next/server";
+import Stripe from "stripe";
 import { stripe } from "@/lib/stripe";
 import { createClient } from "@/lib/supabase/server";
 
 type CheckoutLineInput = { productId: string; quantity: number };
 
 export async function POST(request: Request) {
+  try {
+    return await handleCheckout(request);
+  } catch (err) {
+    // Without this, an unhandled error (e.g. Stripe rejecting the request —
+    // amounts below its ~€0.50 minimum charge, a missing/invalid API key)
+    // crashes the route and the client gets a non-JSON response, which
+    // surfaces client-side as a confusing "Unexpected end of JSON input"
+    // instead of the actual problem.
+    const message =
+      err instanceof Stripe.errors.StripeError
+        ? err.message
+        : err instanceof Error
+          ? err.message
+          : "Checkout failed";
+    console.error("Checkout error:", err);
+    return NextResponse.json({ error: message }, { status: 400 });
+  }
+}
+
+async function handleCheckout(request: Request) {
   const { items } = (await request.json()) as { items: CheckoutLineInput[] };
 
   if (!Array.isArray(items) || items.length === 0) {
