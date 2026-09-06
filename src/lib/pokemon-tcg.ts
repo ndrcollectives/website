@@ -1,10 +1,13 @@
-// Client for the community-run Pokémon TCG API (https://pokemontcg.io),
-// used to keep the `sets` table's official data (release dates, card
-// counts, artwork) in sync without hand-entry. It only covers sets that
-// have actually been printed/announced with a fixed release date — sets
-// still under wraps stay admin-entered until the API picks them up.
-
-const API_BASE = "https://api.pokemontcg.io/v2";
+// Source for keeping the `sets`/`cards` tables in sync without hand-entry.
+//
+// This used to call the api.pokemontcg.io REST API directly, but that
+// service has become unreliable (extended outages returning raw gateway
+// error pages, not just rate-limit 429s). Its maintainers publish the same
+// underlying dataset as static JSON files in a public GitHub repo —
+// https://github.com/PokemonTCG/pokemon-tcg-data — which we fetch from
+// GitHub's CDN instead. Same fields, same image URLs, no API server to go
+// down, and no API key needed.
+const DATA_BASE = "https://raw.githubusercontent.com/PokemonTCG/pokemon-tcg-data/master";
 
 type ApiSet = {
   id: string;
@@ -25,30 +28,20 @@ export type SyncedSet = {
   is_upcoming: boolean;
 };
 
-function apiHeaders(): HeadersInit {
-  const apiKey = process.env.POKEMON_TCG_API_KEY;
-  return apiKey ? { "X-Api-Key": apiKey } : {};
-}
-
-// pokemontcg.io's shared hosting throws transient 500s under load, not just
-// 502/503/504 — treat it the same as those and retry rather than failing
-// the whole sync on one flaky response.
 const RETRYABLE_STATUSES = new Set([429, 500, 502, 503, 504]);
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// The public API (especially unauthenticated — see POKEMON_TCG_API_KEY)
-// occasionally returns transient 429/500/502/503/504s under load or rate
-// limiting. Retry those a few times with backoff before giving up;
-// anything else (404, malformed query, etc.) fails immediately.
-async function fetchWithRetry(url: string, attempts = 4): Promise<Response> {
+// GitHub's raw content CDN is far more reliable than the old API, but still
+// retry a couple of times on transient blips before giving up.
+async function fetchWithRetry(url: string, attempts = 3): Promise<Response> {
   let lastError: unknown;
 
   for (let attempt = 1; attempt <= attempts; attempt++) {
     try {
-      const res = await fetch(url, { headers: apiHeaders(), cache: "no-store" });
+      const res = await fetch(url, { cache: "no-store" });
       if (res.ok || !RETRYABLE_STATUSES.has(res.status) || attempt === attempts) {
         return res;
       }
@@ -63,56 +56,38 @@ async function fetchWithRetry(url: string, attempts = 4): Promise<Response> {
   throw lastError instanceof Error ? lastError : new Error(String(lastError));
 }
 
+async function describeError(res: Response, url: string): Promise<string> {
+  const body = await res.text().catch(() => "");
+  const snippet = body.trim().slice(0, 200);
+  return snippet
+    ? `Failed to fetch ${url}: ${res.status} ${res.statusText} — ${snippet}`
+    : `Failed to fetch ${url}: ${res.status} ${res.statusText}`;
+}
+
 function toIsoDate(apiDate: string): string {
   return apiDate.replaceAll("/", "-");
 }
 
-async function describeError(res: Response): Promise<string> {
-  const body = await res.text().catch(() => "");
-  const snippet = body.trim().slice(0, 200);
-  return snippet
-    ? `Pokémon TCG API request failed: ${res.status} ${res.statusText} — ${snippet}`
-    : `Pokémon TCG API request failed: ${res.status} ${res.statusText}`;
-}
-
 export async function fetchAllSets(): Promise<SyncedSet[]> {
-  const results: SyncedSet[] = [];
-  let page = 1;
-  // The API's shared hosting times out more often at the max pageSize
-  // (250); a smaller page is slower but far less likely to 500.
-  const pageSize = 100;
+  const url = `${DATA_BASE}/sets/en.json`;
+  const res = await fetchWithRetry(url);
+  if (!res.ok) throw new Error(await describeError(res, url));
 
-  for (;;) {
-    const res = await fetchWithRetry(
-      `${API_BASE}/sets?page=${page}&pageSize=${pageSize}&orderBy=releaseDate`,
-    );
+  const sets = (await res.json()) as ApiSet[];
+  const today = new Date();
 
-    if (!res.ok) {
-      throw new Error(await describeError(res));
-    }
-
-    const body = (await res.json()) as { data: ApiSet[] };
-    const today = new Date();
-
-    for (const set of body.data) {
-      const releaseDate = toIsoDate(set.releaseDate);
-      results.push({
-        name: set.name,
-        code: set.id,
-        era: set.series,
-        release_date: releaseDate,
-        total_cards: set.total,
-        logo_url: set.images?.logo ?? null,
-        is_upcoming: new Date(releaseDate) > today,
-      });
-    }
-
-    if (body.data.length < pageSize) break;
-    page += 1;
-    await sleep(300);
-  }
-
-  return results;
+  return sets.map((set) => {
+    const releaseDate = toIsoDate(set.releaseDate);
+    return {
+      name: set.name,
+      code: set.id,
+      era: set.series,
+      release_date: releaseDate,
+      total_cards: set.total,
+      logo_url: set.images?.logo ?? null,
+      is_upcoming: new Date(releaseDate) > today,
+    };
+  });
 }
 
 type ApiCard = {
@@ -136,41 +111,31 @@ export type SyncedCard = {
   artist: string | null;
 };
 
-// setCode is the API's own set id (what we store as `sets.code` — see
+// setCode is the dataset's own set id (what we store as `sets.code` — see
 // fetchAllSets above), e.g. "sv8" or "swsh1".
 export async function fetchCardsForSet(setCode: string): Promise<SyncedCard[]> {
-  const results: SyncedCard[] = [];
-  let page = 1;
-  const pageSize = 100;
+  const url = `${DATA_BASE}/cards/en/${encodeURIComponent(setCode)}.json`;
+  const res = await fetchWithRetry(url);
 
-  for (;;) {
-    const res = await fetchWithRetry(
-      `${API_BASE}/cards?q=${encodeURIComponent(`set.id:${setCode}`)}&page=${page}&pageSize=${pageSize}&orderBy=number`,
-    );
-
-    if (!res.ok) {
-      throw new Error(await describeError(res));
+  if (!res.ok) {
+    if (res.status === 404) {
+      throw new Error(
+        `No card data found for set "${setCode}" — it may not be in the pokemon-tcg-data repo yet.`,
+      );
     }
-
-    const body = (await res.json()) as { data: ApiCard[] };
-
-    for (const card of body.data) {
-      results.push({
-        api_id: card.id,
-        name: card.name,
-        number: card.number,
-        rarity: card.rarity ?? null,
-        supertype: card.supertype ?? null,
-        image_small: card.images?.small ?? null,
-        image_large: card.images?.large ?? null,
-        artist: card.artist ?? null,
-      });
-    }
-
-    if (body.data.length < pageSize) break;
-    page += 1;
-    await sleep(300);
+    throw new Error(await describeError(res, url));
   }
 
-  return results;
+  const cards = (await res.json()) as ApiCard[];
+
+  return cards.map((card) => ({
+    api_id: card.id,
+    name: card.name,
+    number: card.number,
+    rarity: card.rarity ?? null,
+    supertype: card.supertype ?? null,
+    image_small: card.images?.small ?? null,
+    image_large: card.images?.large ?? null,
+    artist: card.artist ?? null,
+  }));
 }

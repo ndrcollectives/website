@@ -57,18 +57,20 @@ values above.
 ### 5. Set release data
 
 Set data (names, release dates, card counts, artwork) is kept in sync with
-the [Pokémon TCG API](https://pokemontcg.io) instead of hand-entry:
+the [pokemon-tcg-data](https://github.com/PokemonTCG/pokemon-tcg-data)
+dataset instead of hand-entry — static JSON on GitHub's CDN, not a
+third-party API server, so it isn't affected by api.pokemontcg.io's outages:
 
-- Click **"Sync Sets from Pokémon TCG API"** on `/admin/sets` to sync
+- Click **"Sync Sets from Pokémon TCG Data"** on `/admin/sets` to sync
   on demand.
 - `vercel.json` also schedules `/api/cron/sync-sets` to run daily. Set
   `CRON_SECRET` in your environment so only Vercel Cron (or you, with the
   same bearer token) can trigger it.
-- The public API only covers sets that have actually been announced/
+- The dataset only covers sets that have actually been announced/
   printed with a real release date — a set that's rumored but not yet
   confirmed still needs to be added manually on `/admin/sets` until the
-  API picks it up, at which point the next sync reconciles it (matched
-  by the API's set code).
+  dataset picks it up, at which point the next sync reconciles it (matched
+  by set code).
 - Each set also has its own **card checklist with official artwork**,
   synced separately (it's a lot of data — hundreds of cards per set —
   so it's not pulled automatically with the set itself). On `/admin/sets`,

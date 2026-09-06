@@ -41,21 +41,21 @@ export default async function AdminSetsPage({
 
       <form action={syncSetsFromApi} className="mt-6">
         <Button type="submit" variant="secondary">
-          Sync Sets from Pokémon TCG API
+          Sync Sets from Pokémon TCG Data
         </Button>
         <p className="mt-2 text-xs text-muted">
           Pulls official set names, release dates, card counts, and logos
           from{" "}
           <a
-            href="https://pokemontcg.io"
+            href="https://github.com/PokemonTCG/pokemon-tcg-data"
             target="_blank"
             rel="noreferrer"
             className="underline"
           >
-            pokemontcg.io
+            the pokemon-tcg-data dataset
           </a>
           . Only covers announced/printed sets — add unannounced upcoming
-          sets manually below until the API picks them up.
+          sets manually below until it&apos;s picked up there.
         </p>
       </form>
 
