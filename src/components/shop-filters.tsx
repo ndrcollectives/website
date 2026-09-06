@@ -6,14 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useCardSuggestions, type CardSuggestion } from "@/hooks/use-card-suggestions";
 import type { Set } from "@/lib/types";
-
-type CardSuggestion = {
-  id: string;
-  name: string;
-  number: string;
-  set: { id: string; name: string; code: string } | null;
-};
 
 const PRODUCT_TYPES = [
   { value: "single", label: "Single" },
@@ -50,47 +44,30 @@ export function ShopFilters({ sets, params }: { sets: Set[]; params: SearchParam
   const searchBoxRef = useRef<HTMLDivElement>(null);
 
   const [query, setQuery] = useState(params.search ?? "");
-  const [suggestions, setSuggestions] = useState<CardSuggestion[]>([]);
+  const [selectedSetId, setSelectedSetId] = useState(params.set ?? "");
   const [showSuggestions, setShowSuggestions] = useState(false);
 
-  // Keep the box in sync if the URL's search param changes from outside
-  // this component (browser back/forward, a link elsewhere setting it).
-  // Adjusting state during render (React's documented pattern for this,
-  // rather than an effect) avoids an extra commit on every keystroke.
+  // Keep the box in sync if the URL's search/set params change from
+  // outside this component (browser back/forward, a link elsewhere
+  // setting them). Adjusting state during render (React's documented
+  // pattern for this, rather than an effect) avoids an extra commit on
+  // every keystroke.
   const [syncedSearchParam, setSyncedSearchParam] = useState(params.search);
   if (params.search !== syncedSearchParam) {
     setSyncedSearchParam(params.search);
     setQuery(params.search ?? "");
+  }
+  const [syncedSetParam, setSyncedSetParam] = useState(params.set);
+  if (params.set !== syncedSetParam) {
+    setSyncedSetParam(params.set);
+    setSelectedSetId(params.set ?? "");
   }
 
   // Suggest cards (not products — the card catalog has full official
   // names/numbers/sets even for cards nobody has listed yet) as the admin
   // types, scoped to the currently selected set so "cha" in Chaos Rising
   // resolves to that set's Charizard and number instead of every printing.
-  // Below 2 characters this just skips fetching — stale suggestions can't
-  // render since the list below is also gated on the same length check.
-  useEffect(() => {
-    const q = query.trim();
-    if (q.length < 2) return;
-
-    const controller = new AbortController();
-    const timeout = setTimeout(() => {
-      const url = new URL("/api/cards/search", window.location.origin);
-      url.searchParams.set("q", q);
-      const setId = setSelectRef.current?.value;
-      if (setId) url.searchParams.set("set", setId);
-
-      fetch(url, { signal: controller.signal })
-        .then((res) => res.json())
-        .then((body: { results: CardSuggestion[] }) => setSuggestions(body.results ?? []))
-        .catch(() => {});
-    }, 250);
-
-    return () => {
-      clearTimeout(timeout);
-      controller.abort();
-    };
-  }, [query]);
+  const suggestions = useCardSuggestions(query, selectedSetId || undefined);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -105,8 +82,9 @@ export function ShopFilters({ sets, params }: { sets: Set[]; params: SearchParam
   function selectSuggestion(card: CardSuggestion) {
     setQuery(card.name);
     setShowSuggestions(false);
-    if (card.set && setSelectRef.current) {
-      setSelectRef.current.value = card.set.id;
+    if (card.set) {
+      setSelectedSetId(card.set.id);
+      if (setSelectRef.current) setSelectRef.current.value = card.set.id;
     }
     // Let the controlled input's new value flush before the GET submit
     // reads it off the form.
@@ -159,7 +137,7 @@ export function ShopFilters({ sets, params }: { sets: Set[]; params: SearchParam
                     <span className="text-sm font-medium">{card.name}</span>
                     <span className="text-xs text-muted">
                       #{card.number}
-                      {card.set && !params.set ? ` · ${card.set.name}` : ""}
+                      {card.set && !selectedSetId ? ` · ${card.set.name}` : ""}
                     </span>
                   </button>
                 </li>
@@ -172,7 +150,12 @@ export function ShopFilters({ sets, params }: { sets: Set[]; params: SearchParam
           <label className="mb-1 block text-xs font-semibold uppercase text-muted">
             Set / Expansion
           </label>
-          <Select name="set" ref={setSelectRef} defaultValue={params.set ?? ""}>
+          <Select
+            name="set"
+            ref={setSelectRef}
+            defaultValue={params.set ?? ""}
+            onChange={(e) => setSelectedSetId(e.target.value)}
+          >
             <option value="">All sets</option>
             {sets.map((s) => (
               <option key={s.id} value={s.id}>

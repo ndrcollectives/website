@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Menu, Search, ShoppingCart, User, X } from "lucide-react";
 import { useCart } from "@/components/cart/cart-context";
 import { Input } from "@/components/ui/input";
 import { Logomark } from "@/components/logomark";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { useCardSuggestions, type CardSuggestion } from "@/hooks/use-card-suggestions";
 
 const NAV_LINKS = [
   { href: "/shop", label: "Shop" },
@@ -15,11 +16,82 @@ const NAV_LINKS = [
   { href: "/news", label: "News" },
 ];
 
+function SearchBox({
+  formClassName,
+  query,
+  onQueryChange,
+  onSubmit,
+  suggestions,
+  onSelectSuggestion,
+}: {
+  formClassName: string;
+  query: string;
+  onQueryChange: (value: string) => void;
+  onSubmit: (e: FormEvent) => void;
+  suggestions: CardSuggestion[];
+  onSelectSuggestion: (card: CardSuggestion) => void;
+}) {
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <form onSubmit={onSubmit} className={formClassName}>
+      <div ref={containerRef} className="relative">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+        <Input
+          value={query}
+          onChange={(e) => {
+            onQueryChange(e.target.value);
+            setShowSuggestions(true);
+          }}
+          onFocus={() => setShowSuggestions(true)}
+          placeholder="Search cards, sets, numbers..."
+          className="pl-9"
+          autoComplete="off"
+        />
+        {showSuggestions && query.trim().length >= 2 && suggestions.length > 0 && (
+          <ul className="absolute z-40 mt-1 max-h-72 w-full overflow-y-auto rounded-lg border border-border bg-surface-raised shadow-lg">
+            {suggestions.map((card) => (
+              <li key={card.id}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowSuggestions(false);
+                    onSelectSuggestion(card);
+                  }}
+                  className="flex w-full flex-col items-start gap-0.5 px-3 py-2 text-left hover:bg-surface"
+                >
+                  <span className="text-sm font-medium">{card.name}</span>
+                  <span className="text-xs text-muted">
+                    #{card.number}
+                    {card.set ? ` · ${card.set.name}` : ""}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </form>
+  );
+}
+
 export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
   const { itemCount, openCart } = useCart();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [query, setQuery] = useState("");
   const router = useRouter();
+  const suggestions = useCardSuggestions(query);
 
   function handleSearch(e: FormEvent) {
     e.preventDefault();
@@ -27,6 +99,15 @@ export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
       router.push(`/shop?search=${encodeURIComponent(query.trim())}`);
       setMobileOpen(false);
     }
+  }
+
+  function selectSuggestion(card: CardSuggestion) {
+    setQuery(card.name);
+    const target = card.set
+      ? `/shop?search=${encodeURIComponent(card.name)}&set=${card.set.id}`
+      : `/shop?search=${encodeURIComponent(card.name)}`;
+    router.push(target);
+    setMobileOpen(false);
   }
 
   return (
@@ -49,17 +130,14 @@ export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
           ))}
         </nav>
 
-        <form onSubmit={handleSearch} className="ml-auto hidden max-w-sm flex-1 md:block">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search cards, sets, numbers..."
-              className="pl-9"
-            />
-          </div>
-        </form>
+        <SearchBox
+          formClassName="ml-auto hidden max-w-sm flex-1 md:block"
+          query={query}
+          onQueryChange={setQuery}
+          onSubmit={handleSearch}
+          suggestions={suggestions}
+          onSelectSuggestion={selectSuggestion}
+        />
 
         <div className="ml-auto flex items-center gap-2 md:ml-0">
           <ThemeToggle />
@@ -94,17 +172,14 @@ export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
 
       {mobileOpen && (
         <div className="border-t border-border p-4 md:hidden">
-          <form onSubmit={handleSearch} className="mb-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-              <Input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search cards, sets, numbers..."
-                className="pl-9"
-              />
-            </div>
-          </form>
+          <SearchBox
+            formClassName="mb-4"
+            query={query}
+            onQueryChange={setQuery}
+            onSubmit={handleSearch}
+            suggestions={suggestions}
+            onSelectSuggestion={selectSuggestion}
+          />
           <nav className="flex flex-col gap-3">
             {NAV_LINKS.map((link) => (
               <Link
