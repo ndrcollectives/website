@@ -7,8 +7,7 @@ import { Menu, Search, ShoppingCart, User, X } from "lucide-react";
 import { useCart } from "@/components/cart/cart-context";
 import { Input } from "@/components/ui/input";
 import { Logomark } from "@/components/logomark";
-import { LanguageSwitcher } from "@/components/language-switcher";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { SettingsMenu } from "@/components/settings-menu";
 import { useCardSuggestions, type CardSuggestion } from "@/hooks/use-card-suggestions";
 import { useLanguage } from "@/lib/i18n/language-context";
 
@@ -121,8 +120,8 @@ export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
 
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur">
-      <div className="relative mx-auto flex h-16 max-w-7xl items-center px-4">
-        <div className="flex min-w-0 items-center gap-6">
+      <div className="mx-auto flex h-16 max-w-7xl items-center gap-2 px-4">
+        <div className="flex shrink-0 items-center gap-6">
           <button
             className="rounded-lg p-2 hover:bg-surface-raised md:hidden"
             onClick={() => {
@@ -147,15 +146,17 @@ export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
           </nav>
         </div>
 
-        <Link
-          href="/"
-          className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2 font-bold"
-        >
-          <Logomark />
-          <span className="hidden text-sm sm:inline sm:text-base">NDR Collectives</span>
-        </Link>
+        {/* Centered in the space between the left and right zones (rather
+            than viewport-absolute) so the wordmark shrinks/truncates
+            gracefully on narrow screens instead of having to be hidden. */}
+        <div className="flex min-w-0 flex-1 justify-center">
+          <Link href="/" className="flex min-w-0 items-center gap-2 font-bold">
+            <Logomark className="shrink-0" />
+            <span className="truncate text-sm sm:text-base">NDR Collectives</span>
+          </Link>
+        </div>
 
-        <div className="ml-auto flex items-center gap-1">
+        <div className="flex shrink-0 items-center gap-1">
           <button
             onClick={() => {
               setSearchOpen((v) => !v);
@@ -166,8 +167,6 @@ export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
           >
             <Search className="h-5 w-5" />
           </button>
-          <LanguageSwitcher iconOnly />
-          <ThemeToggle iconOnly />
           <Link
             href={isSignedIn ? "/account" : "/sign-in"}
             className="hidden rounded-lg p-2 hover:bg-surface-raised md:block"
@@ -187,6 +186,7 @@ export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
               </span>
             )}
           </button>
+          <SettingsMenu />
         </div>
       </div>
 
