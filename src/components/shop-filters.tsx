@@ -148,16 +148,16 @@ export function ShopFilters({ sets, params }: { sets: Set[]; params: SearchParam
             autoComplete="off"
           />
           {showSuggestions && query.trim().length >= 2 && suggestions.length > 0 && (
-            <ul className="absolute z-20 mt-1 w-full overflow-hidden rounded-lg border border-border bg-surface-raised shadow-lg">
+            <ul className="absolute z-20 mt-1 max-h-72 w-full overflow-y-auto rounded-lg border border-border bg-surface-raised shadow-lg">
               {suggestions.map((card) => (
                 <li key={card.id}>
                   <button
                     type="button"
                     onClick={() => selectSuggestion(card)}
-                    className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:bg-surface"
+                    className="flex w-full flex-col items-start gap-0.5 px-3 py-2 text-left hover:bg-surface"
                   >
-                    <span className="truncate">{card.name}</span>
-                    <span className="shrink-0 text-xs text-muted">
+                    <span className="text-sm font-medium">{card.name}</span>
+                    <span className="text-xs text-muted">
                       #{card.number}
                       {card.set && !params.set ? ` · ${card.set.name}` : ""}
                     </span>

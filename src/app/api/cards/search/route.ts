@@ -21,7 +21,7 @@ export async function GET(request: Request) {
     .select("id, name, number, set:sets(id, name, code)")
     .ilike("name", `%${q}%`)
     .order("name", { ascending: true })
-    .limit(8);
+    .limit(12);
 
   if (setId) {
     query = query.eq("set_id", setId);
