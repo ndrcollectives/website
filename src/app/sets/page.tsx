@@ -56,10 +56,11 @@ function SetSection({
       <h2 className="mb-4 text-xl font-bold">{title}</h2>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {sets.map((set) => (
-          <div
+          <Link
             key={set.id}
             id={set.code}
-            className="flex flex-col gap-3 rounded-xl border border-border bg-surface p-4"
+            href={`/sets/${set.code}`}
+            className="flex flex-col gap-3 rounded-xl border border-border bg-surface p-4 transition-colors hover:border-accent-yellow/60"
           >
             <div className="flex items-center gap-3">
               <div className="relative h-12 w-12 shrink-0">
@@ -88,22 +89,7 @@ function SetSection({
             </div>
 
             {showCountdown && <CountdownTimer releaseDate={set.release_date} />}
-
-            <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm">
-              <Link
-                href={`/sets/${set.code}`}
-                className="font-medium text-accent-blue hover:underline"
-              >
-                View card list &rarr;
-              </Link>
-              <Link
-                href={`/shop?set=${set.id}`}
-                className="font-medium text-accent-blue hover:underline"
-              >
-                Shop this set &rarr;
-              </Link>
-            </div>
-          </div>
+          </Link>
         ))}
       </div>
     </section>
