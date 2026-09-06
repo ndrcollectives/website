@@ -94,12 +94,30 @@ export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
   const [query, setQuery] = useState("");
   const router = useRouter();
   const suggestions = useCardSuggestions(query);
+  const mobileMenuRef = useRef<HTMLElement>(null);
+  const mobileToggleRef = useRef<HTMLButtonElement>(null);
 
   const NAV_LINKS = [
     { href: "/shop", label: dict.nav.shop },
     { href: "/sets", label: dict.nav.sets },
     { href: "/news", label: dict.nav.news },
   ];
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    function handleClickOutside(e: MouseEvent) {
+      const target = e.target as Node;
+      if (
+        mobileMenuRef.current &&
+        !mobileMenuRef.current.contains(target) &&
+        !mobileToggleRef.current?.contains(target)
+      ) {
+        setMobileOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [mobileOpen]);
 
   function handleSearch(e: FormEvent) {
     e.preventDefault();
@@ -120,9 +138,10 @@ export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
 
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-7xl items-center gap-2 px-4">
+      <div className="relative mx-auto flex h-16 max-w-7xl items-center gap-2 px-4">
         <div className="flex shrink-0 items-center gap-6">
           <button
+            ref={mobileToggleRef}
             className="rounded-lg p-2 hover:bg-surface-raised md:hidden"
             onClick={() => {
               setMobileOpen((v) => !v);
@@ -206,27 +225,28 @@ export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
       )}
 
       {mobileOpen && (
-        <div className="border-t border-border p-4 md:hidden">
-          <nav className="flex flex-col gap-3">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setMobileOpen(false)}
-                className="text-sm font-medium text-muted hover:text-foreground"
-              >
-                {link.label}
-              </Link>
-            ))}
+        <nav
+          ref={mobileMenuRef}
+          className="absolute left-4 top-full z-40 mt-2 flex max-w-[calc(100vw-2rem)] flex-wrap gap-2 rounded-lg border border-border bg-surface-raised/95 p-3 shadow-lg backdrop-blur-xl md:hidden"
+        >
+          {NAV_LINKS.map((link) => (
             <Link
-              href={isSignedIn ? "/account" : "/sign-in"}
+              key={link.href}
+              href={link.href}
               onClick={() => setMobileOpen(false)}
-              className="text-sm font-medium text-muted hover:text-foreground"
+              className="rounded-lg border border-border px-3 py-1.5 text-sm font-medium hover:border-accent-yellow/60 hover:bg-surface"
             >
-              {isSignedIn ? dict.nav.myAccount : dict.nav.signIn}
+              {link.label}
             </Link>
-          </nav>
-        </div>
+          ))}
+          <Link
+            href={isSignedIn ? "/account" : "/sign-in"}
+            onClick={() => setMobileOpen(false)}
+            className="rounded-lg border border-border px-3 py-1.5 text-sm font-medium hover:border-accent-yellow/60 hover:bg-surface"
+          >
+            {isSignedIn ? dict.nav.myAccount : dict.nav.signIn}
+          </Link>
+        </nav>
       )}
     </header>
   );
