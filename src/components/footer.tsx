@@ -3,8 +3,6 @@
 import Link from "next/link";
 import { NewsletterSignup } from "@/components/newsletter-signup";
 import { Logomark } from "@/components/logomark";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { LanguageSwitcher } from "@/components/language-switcher";
 import { useLanguage } from "@/lib/i18n/language-context";
 
 export function Footer() {
@@ -49,15 +47,9 @@ export function Footer() {
           <NewsletterSignup />
         </div>
 
-        <div className="mt-10 flex flex-col gap-4 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-xs text-muted">
-            © {new Date().getFullYear()} NDR Collectives. {dict.footer.disclaimer}
-          </p>
-          <div className="flex items-center gap-2">
-            <LanguageSwitcher />
-            <ThemeToggle />
-          </div>
-        </div>
+        <p className="mt-10 border-t border-border pt-6 text-xs text-muted">
+          © {new Date().getFullYear()} NDR Collectives. {dict.footer.disclaimer}
+        </p>
       </div>
     </footer>
   );

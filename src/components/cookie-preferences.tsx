@@ -19,7 +19,7 @@ export function CookiePreferences() {
   return (
     <div className="space-y-6">
       <div className="rounded-xl border border-border bg-surface p-5">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="font-semibold">{dict.cookies.necessaryTitle}</h3>
           <span className="flex items-center gap-1 rounded-full bg-surface-raised px-2.5 py-1 text-xs font-medium text-muted">
             <Check className="h-3.5 w-3.5" />
@@ -30,7 +30,7 @@ export function CookiePreferences() {
       </div>
 
       <div className="rounded-xl border border-border bg-surface p-5">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="font-semibold">{dict.cookies.preferencesTitle}</h3>
           {status === "accepted" ? (
             <span className="flex items-center gap-1 rounded-full bg-accent-yellow/15 px-2.5 py-1 text-xs font-medium text-accent-yellow">
@@ -45,7 +45,7 @@ export function CookiePreferences() {
         <p className="mt-2 text-sm text-muted">{dict.cookies.preferencesBody}</p>
 
         <p className="mt-4 text-xs text-muted">{statusText}</p>
-        <div className="mt-3 flex gap-2">
+        <div className="mt-3 flex flex-wrap gap-2">
           <Button
             size="sm"
             variant={status === "accepted" ? "secondary" : "default"}

@@ -13,7 +13,7 @@ export function LanguagePreference() {
   const { locale, setLocale } = useLanguage();
 
   return (
-    <div className="flex gap-2">
+    <div className="flex flex-wrap gap-2">
       {locales.map((l) => (
         <button
           key={l}

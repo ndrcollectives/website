@@ -23,11 +23,17 @@ export function CookieBanner() {
             </Link>
           </p>
         </div>
-        <div className="flex shrink-0 gap-2">
-          <Button variant="secondary" onClick={() => setStatus("rejected")}>
+        <div className="flex flex-col gap-2 min-[420px]:flex-row sm:shrink-0">
+          <Button
+            variant="secondary"
+            className="w-full min-[420px]:w-auto"
+            onClick={() => setStatus("rejected")}
+          >
             {dict.cookies.reject}
           </Button>
-          <Button onClick={() => setStatus("accepted")}>{dict.cookies.accept}</Button>
+          <Button className="w-full min-[420px]:w-auto" onClick={() => setStatus("accepted")}>
+            {dict.cookies.accept}
+          </Button>
         </div>
       </div>
     </div>
