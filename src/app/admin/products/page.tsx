@@ -4,10 +4,29 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/utils";
-import { createProduct, deleteProduct, updateProductInventory } from "./actions";
+import {
+  createProduct,
+  deleteProduct,
+  importProductsCsv,
+  updateProductInventory,
+} from "./actions";
 
-export default async function AdminProductsPage() {
+type SearchParams = {
+  imported?: string;
+  importError?: string;
+  skippedDuplicate?: string;
+  skippedNoPrice?: string;
+  skippedNoSet?: string;
+};
+
+export default async function AdminProductsPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
   await requireAdmin();
+  const { imported, importError, skippedDuplicate, skippedNoPrice, skippedNoSet } =
+    await searchParams;
   const supabase = createAdminClient();
 
   const [{ data: products }, { data: sets }] = await Promise.all([
@@ -18,6 +37,60 @@ export default async function AdminProductsPage() {
   return (
     <div>
       <h1 className="text-2xl font-bold">Product Manager</h1>
+
+      {imported && (
+        <div className="mt-4 rounded-lg border border-accent-yellow/40 bg-accent-yellow/10 p-3 text-sm text-accent-yellow">
+          <p>Imported {imported} product{imported === "1" ? "" : "s"} from the CSV.</p>
+          {skippedDuplicate && (
+            <p className="mt-1 text-xs">
+              Skipped {skippedDuplicate} row{skippedDuplicate === "1" ? "" : "s"} already listed.
+            </p>
+          )}
+          {skippedNoPrice && (
+            <p className="mt-1 text-xs">
+              Skipped {skippedNoPrice} row{skippedNoPrice === "1" ? "" : "s"} with no price.
+            </p>
+          )}
+          {skippedNoSet && (
+            <p className="mt-1 text-xs">
+              Skipped rows for sets not found: {skippedNoSet}. Sync or add these sets first.
+            </p>
+          )}
+        </div>
+      )}
+      {importError && (
+        <p className="mt-4 rounded-lg border border-accent-red/40 bg-accent-red/10 p-3 text-sm text-accent-red">
+          {importError}
+        </p>
+      )}
+
+      <form
+        action={importProductsCsv}
+        encType="multipart/form-data"
+        className="mt-6 rounded-xl border border-border bg-surface p-4"
+      >
+        <label className="mb-1 block text-xs font-semibold uppercase text-muted">
+          Bulk import from CSV
+        </label>
+        <p className="mb-3 text-xs text-muted">
+          A collection-tracker export with Set, Product Name, Card Number, Rarity,
+          Variance, Grade, Card Condition, Quantity, and Market Price columns. Rows
+          are matched to a set by name and, when a synced card matches, get its
+          artwork automatically. Re-uploading skips rows already listed.
+        </p>
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <input
+            type="file"
+            name="file"
+            accept=".csv,text/csv"
+            required
+            className="flex-1 rounded-lg border border-border bg-surface-raised px-3 py-2 text-sm text-foreground file:mr-3 file:rounded-md file:border-0 file:bg-accent-yellow file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-slate-950"
+          />
+          <Button type="submit" variant="secondary">
+            Import CSV
+          </Button>
+        </div>
+      </form>
 
       <form
         action={createProduct}
