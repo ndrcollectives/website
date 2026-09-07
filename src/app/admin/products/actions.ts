@@ -65,6 +65,27 @@ export async function updateProductInventory(formData: FormData) {
   revalidatePath("/shop");
 }
 
+// "Fix Missing Images" only backfills singles matched by set + card
+// number against the synced card catalog — sealed product (booster
+// boxes, ETBs, packs) has no catalog entry to match against, so it has
+// no way to get an image except being set here by hand.
+export async function updateProductImages(formData: FormData) {
+  await requireAdmin();
+  const supabase = createAdminClient();
+
+  const id = String(formData.get("id"));
+  const images = String(formData.get("images") ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const { error } = await supabase.from("products").update({ images }).eq("id", id);
+
+  if (error) throw new Error(error.message);
+  revalidatePath("/admin/products");
+  revalidatePath("/shop");
+}
+
 // Imports a collection-tracker CSV export (see product-import.ts for the
 // expected columns) as product listings. Matches each row's "Set" to a
 // synced set by name and, when a matching card was synced, uses its

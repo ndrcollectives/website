@@ -48,6 +48,7 @@ export default async function AdminProductsPage({
     title: string;
     price_cents: number;
     inventory_count: number;
+    images: string[];
   };
   type ProductGroup = {
     key: string;
@@ -64,6 +65,7 @@ export default async function AdminProductsPage({
       title: p.title,
       price_cents: p.price_cents,
       inventory_count: p.inventory_count,
+      images: p.images ?? [],
     };
     const group = groupsByKey.get(key);
     if (group) {

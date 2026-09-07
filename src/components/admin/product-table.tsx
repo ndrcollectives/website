@@ -9,6 +9,7 @@ import {
   deleteProduct,
   deleteProducts,
   deleteProductsBySet,
+  updateProductImages,
   updateProductInventory,
 } from "@/app/admin/products/actions";
 
@@ -17,6 +18,7 @@ type ProductRow = {
   title: string;
   price_cents: number;
   inventory_count: number;
+  images: string[];
 };
 
 type ProductGroup = {
@@ -143,6 +145,7 @@ export function ProductTable({ groups }: { groups: ProductGroup[] }) {
                       <th className="p-3">Title</th>
                       <th className="p-3">Price</th>
                       <th className="p-3">Inventory</th>
+                      <th className="p-3">Image URL</th>
                       <th className="p-3" />
                     </tr>
                   </thead>
@@ -167,6 +170,20 @@ export function ProductTable({ groups }: { groups: ProductGroup[] }) {
                               type="number"
                               defaultValue={p.inventory_count}
                               className="h-8 w-20"
+                            />
+                            <Button size="sm" variant="secondary" type="submit">
+                              Save
+                            </Button>
+                          </form>
+                        </td>
+                        <td className="p-3">
+                          <form action={updateProductImages} className="flex items-center gap-2">
+                            <input type="hidden" name="id" value={p.id} />
+                            <Input
+                              name="images"
+                              placeholder="Image URL"
+                              defaultValue={p.images.join(", ")}
+                              className="h-8 w-40"
                             />
                             <Button size="sm" variant="secondary" type="submit">
                               Save
