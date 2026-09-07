@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { stripe } from "@/lib/stripe";
 import { createClient } from "@/lib/supabase/server";
+import { calculateTransactionFeeCents, SHIPPING_FLAT_CENTS } from "@/lib/pricing";
 
 type CheckoutLineInput = { productId: string; quantity: number };
 
@@ -86,6 +87,22 @@ async function handleCheckout(request: Request) {
     });
   }
 
+  // Transaction fee covers Stripe's own per-charge cost and is computed
+  // off the product subtotal only — shipping and the fee itself aren't
+  // included, matching how Stripe's real fee is assessed.
+  const subtotalCents = lineItems.reduce(
+    (sum, li) => sum + li.price_data.unit_amount * li.quantity,
+    0,
+  );
+  lineItems.push({
+    price_data: {
+      currency: "eur",
+      unit_amount: calculateTransactionFeeCents(subtotalCents),
+      product_data: { name: "Transaction fee", metadata: {} },
+    },
+    quantity: 1,
+  });
+
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
   const session = await stripe.checkout.sessions.create({
@@ -96,6 +113,15 @@ async function handleCheckout(request: Request) {
     shipping_address_collection: {
       allowed_countries: ["NL", "BE", "DE", "FR", "US", "CA", "GB", "AU"],
     },
+    shipping_options: [
+      {
+        shipping_rate_data: {
+          type: "fixed_amount",
+          fixed_amount: { amount: SHIPPING_FLAT_CENTS, currency: "eur" },
+          display_name: "Shipping",
+        },
+      },
+    ],
     phone_number_collection: { enabled: true },
     customer_email: user?.email ?? undefined,
     metadata: {

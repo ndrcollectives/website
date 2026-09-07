@@ -8,12 +8,14 @@ import { useCart } from "@/components/cart/cart-context";
 import { Button } from "@/components/ui/button";
 import { PriceTag } from "@/components/price-tag";
 import { useLanguage } from "@/lib/i18n/language-context";
+import { calculateTransactionFeeCents, SHIPPING_FLAT_CENTS } from "@/lib/pricing";
 
 export default function CartPage() {
   const { items, removeItem, setQuantity, subtotalCents } = useCart();
   const { dict } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const transactionFeeCents = calculateTransactionFeeCents(subtotalCents);
 
   async function handleCheckout() {
     setLoading(true);
@@ -111,9 +113,27 @@ export default function CartPage() {
 
         <div className="h-fit rounded-xl border border-border bg-surface p-6">
           <h2 className="mb-4 font-semibold">{dict.cart.orderSummary}</h2>
-          <div className="flex items-end justify-between text-sm">
-            <span className="text-muted">{dict.cart.subtotal}</span>
-            <PriceTag cents={subtotalCents} className="items-end" />
+          <div className="space-y-2 text-sm">
+            <div className="flex items-end justify-between">
+              <span className="text-muted">{dict.cart.subtotal}</span>
+              <PriceTag cents={subtotalCents} className="items-end" />
+            </div>
+            <div className="flex items-end justify-between">
+              <span className="text-muted">{dict.cart.transactionFee}</span>
+              <PriceTag cents={transactionFeeCents} className="items-end" />
+            </div>
+            <div className="flex items-end justify-between">
+              <span className="text-muted">{dict.cart.shipping}</span>
+              <PriceTag cents={SHIPPING_FLAT_CENTS} className="items-end" />
+            </div>
+          </div>
+          <div className="mt-3 flex items-end justify-between border-t border-border pt-3 font-semibold">
+            <span>{dict.cart.total}</span>
+            <PriceTag
+              cents={subtotalCents + transactionFeeCents + SHIPPING_FLAT_CENTS}
+              className="items-end"
+              mainClassName="text-accent-yellow"
+            />
           </div>
           <p className="mt-1 text-xs text-muted">{dict.cart.shippingNote}</p>
           {error && <p className="mt-3 text-sm text-accent-red">{error}</p>}
