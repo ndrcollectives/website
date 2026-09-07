@@ -38,10 +38,10 @@ const en = {
       "Not affiliated with The Pokémon Company, Nintendo, Creatures, or Game Freak.",
   },
   home: {
-    heroTitlePrefix: "Chase the",
-    heroTitleHighlight: "next big pull",
+    heroTitlePrefix: "Pokémon cards for",
+    heroTitleHighlight: "everyone",
     heroSubtitle:
-      "Breaking Pokémon TCG news, a live set release calendar, and a curated marketplace of singles, sealed product, and graded slabs.",
+      "Low-cost singles and sealed product — because a complete collection shouldn't be a luxury.",
     shopLatestCards: "Shop Latest Cards",
     viewSets: "View Sets",
     upcomingSetReleases: "Upcoming Set Releases",
@@ -191,10 +191,10 @@ const nl: Dictionary = {
       "Niet verbonden met The Pokémon Company, Nintendo, Creatures of Game Freak.",
   },
   home: {
-    heroTitlePrefix: "Jaag op de",
-    heroTitleHighlight: "volgende grote hit",
+    heroTitlePrefix: "Pokémon kaarten voor",
+    heroTitleHighlight: "iedereen",
     heroSubtitle:
-      "Het laatste Pokémon TCG-nieuws, een actuele releasekalender en een zorgvuldig samengestelde marktplaats voor losse kaarten, verzegelde producten en graded slabs.",
+      "Goedkope losse kaarten en verzegelde producten — want een complete verzameling hoort geen luxe te zijn.",
     shopLatestCards: "Bekijk nieuwste kaarten",
     viewSets: "Bekijk sets",
     upcomingSetReleases: "Aankomende Set-releases",
