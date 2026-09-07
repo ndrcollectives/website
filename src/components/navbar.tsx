@@ -156,20 +156,9 @@ export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
           </Link>
         </div>
 
-        {/* Desktop: search is always visible in the header, not a toggle
-            (mobile keeps the toggle below — narrow screens don't have room
-            for a persistent bar). */}
-        <div className="hidden min-w-0 md:flex md:flex-1">
-          <SearchBox
-            formClassName="w-full"
-            query={query}
-            onQueryChange={setQuery}
-            onSubmit={handleSearch}
-            suggestions={suggestions}
-            onSelectSuggestion={selectSuggestion}
-            placeholder={dict.nav.searchPlaceholder}
-          />
-        </div>
+        {/* Desktop: search moved down into the secondary nav-links row
+            (see below) so this row stays logo-left, icons-right. */}
+        <div className="hidden flex-1 md:block" />
 
         <div className="flex shrink-0 items-center gap-1 md:hidden">
           <button
@@ -224,6 +213,7 @@ export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
               </span>
             )}
           </button>
+          <SettingsMenu />
         </div>
       </div>
 
@@ -243,11 +233,12 @@ export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
       )}
 
       {/* Desktop-only secondary row: nav links on the left (category-row
-          style, like the reference layout), settings on the right — mobile
-          gets these via the burger drawer and its own gear button instead. */}
+          style, like the reference layout), search on the right — mobile
+          gets these via the burger drawer and its own search toggle
+          instead. Settings moved to the top row's icon cluster. */}
       <div className="hidden border-t border-border md:block">
-        <div className="mx-auto flex h-11 max-w-7xl items-center justify-between px-4">
-          <nav className="flex items-center gap-6">
+        <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-6 px-4">
+          <nav className="flex shrink-0 items-center gap-6">
             {NAV_LINKS.map((link) => {
               const active = pathname === link.href || pathname?.startsWith(`${link.href}/`);
               return (
@@ -265,7 +256,15 @@ export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
               );
             })}
           </nav>
-          <SettingsMenu />
+          <SearchBox
+            formClassName="w-full max-w-sm"
+            query={query}
+            onQueryChange={setQuery}
+            onSubmit={handleSearch}
+            suggestions={suggestions}
+            onSelectSuggestion={selectSuggestion}
+            placeholder={dict.nav.searchPlaceholder}
+          />
         </div>
       </div>
     </header>
