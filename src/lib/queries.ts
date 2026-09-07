@@ -343,6 +343,7 @@ export async function getFavoriteEntries(userId: string): Promise<FavoriteEntry[
 export async function getPublishedArticles(
   category?: string,
   limit = 20,
+  locale?: "en" | "nl",
 ): Promise<NewsArticle[]> {
   return safe(async () => {
     const supabase = await createClient();
@@ -354,6 +355,7 @@ export async function getPublishedArticles(
       .limit(limit);
 
     if (category) query = query.eq("category", category);
+    if (locale) query = query.eq("locale", locale);
 
     const { data } = await query;
     return (data as NewsArticle[]) ?? [];

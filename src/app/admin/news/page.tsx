@@ -45,12 +45,14 @@ export default async function AdminNewsPage({
         </Button>
         <p className="mt-2 text-xs text-muted">
           Imports headlines + short excerpts, linking back to each
-          original source rather than republishing full articles. Two
-          independent sources, both configured via Vercel env vars:{" "}
-          <code>NEWS_RSS_FEEDS</code> (comma-separated RSS feed URLs) and{" "}
-          <code>NEWS_OFFICIAL_PRESS=true</code> (Pokémon&apos;s own official
-          press site, press.pokemon.com — it has no RSS, so this parses
-          its page directly).
+          original source rather than republishing full articles. Three
+          independent sources, all configured via Vercel env vars:{" "}
+          <code>NEWS_RSS_FEEDS</code> (comma-separated RSS feed URLs),{" "}
+          <code>NEWS_OFFICIAL_PRESS=true</code> (Pokémon&apos;s official
+          press site, press.pokemon.com/en), and{" "}
+          <code>NEWS_OFFICIAL_PRESS_NL=true</code> (its Dutch/European
+          edition, pokemon.gamespress.com/nl) — neither press site has an
+          RSS feed, so these parse the page directly.
         </p>
       </form>
 
@@ -66,7 +68,11 @@ export default async function AdminNewsPage({
             <option value="Card Spoilers">Card Spoilers</option>
             <option value="Tournament">Tournament</option>
           </Select>
-          <Input name="cover_image_url" placeholder="Cover image URL" />
+          <Select name="locale" required defaultValue="en">
+            <option value="en">English</option>
+            <option value="nl">Dutch</option>
+          </Select>
+          <Input name="cover_image_url" placeholder="Cover image URL" className="sm:col-span-2" />
         </div>
         <Input name="excerpt" placeholder="Short excerpt" />
         <textarea
@@ -94,6 +100,7 @@ export default async function AdminNewsPage({
                 <Badge variant={article.is_published ? "yellow" : "default"}>
                   {article.is_published ? "Published" : "Draft"}
                 </Badge>
+                <Badge variant="default">{article.locale === "nl" ? "NL" : "EN"}</Badge>
                 {article.source_name && (
                   <Badge variant="blue">via {article.source_name}</Badge>
                 )}

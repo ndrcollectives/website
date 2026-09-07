@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Badge } from "@/components/ui/badge";
 import { getPublishedArticles } from "@/lib/queries";
 import { formatDate } from "@/lib/utils";
+import { getLocale } from "@/lib/i18n/get-locale";
 
 export const metadata: Metadata = {
   title: "News & Release Calendar",
@@ -23,7 +24,8 @@ export default async function NewsPage({
   searchParams: Promise<{ category?: string }>;
 }) {
   const { category } = await searchParams;
-  const articles = await getPublishedArticles(category);
+  const locale = await getLocale();
+  const articles = await getPublishedArticles(category, 20, locale);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">

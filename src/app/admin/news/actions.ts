@@ -19,6 +19,7 @@ export async function createArticle(formData: FormData) {
 
   const title = String(formData.get("title") ?? "");
   const isPublished = formData.get("is_published") === "on";
+  const locale = formData.get("locale") === "nl" ? "nl" : "en";
 
   const { error } = await supabase.from("news_articles").insert({
     title,
@@ -30,6 +31,7 @@ export async function createArticle(formData: FormData) {
     author_id: profile.id,
     is_published: isPublished,
     published_at: isPublished ? new Date().toISOString() : null,
+    locale,
   });
 
   if (error) throw new Error(error.message);

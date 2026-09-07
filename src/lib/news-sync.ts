@@ -30,6 +30,7 @@ type PressSiteConfig = {
   url: string;
   baseOrigin: string;
   sourceName: string;
+  locale: ArticleLocale;
   parseDate: (dateText: string) => Date | null;
   getSummary: ($: cheerio.CheerioAPI, node: ReturnType<cheerio.CheerioAPI>) => string;
 };
@@ -57,6 +58,7 @@ const EN_PRESS_CONFIG: PressSiteConfig = {
   url: "https://press.pokemon.com/en",
   baseOrigin: "https://press.pokemon.com",
   sourceName: "Pokémon Official Press Site",
+  locale: "en",
   parseDate: parseEnglishPressDate,
   getSummary: (_$, node) => node.find(".intro").first().text().trim().replace(/\s+/g, " "),
 };
@@ -65,6 +67,7 @@ const NL_PRESS_CONFIG: PressSiteConfig = {
   url: "https://pokemon.gamespress.com/nl",
   baseOrigin: "https://pokemon.gamespress.com",
   sourceName: "Pokémon Persberichten (NL)",
+  locale: "nl",
   parseDate: parseDutchPressDate,
   // Summary lives in ".one-language.intro em" and is often absent —
   // items with no <em> (just the localisations link) get an empty
@@ -79,6 +82,11 @@ export type NewsCategory =
   | "Card Spoilers"
   | "Tournament";
 
+// Which site locale an article's content is written in — controls which
+// locale's /news page it shows up on. RSS feeds and the EN press site
+// are tagged "en"; the NL press site is tagged "nl".
+export type ArticleLocale = "en" | "nl";
+
 export type SyncedArticle = {
   title: string;
   slug: string;
@@ -89,6 +97,7 @@ export type SyncedArticle = {
   source_url: string;
   source_name: string;
   published_at: string;
+  locale: ArticleLocale;
 };
 
 const parser = new Parser({
@@ -211,6 +220,9 @@ async function fetchFromRssFeeds(): Promise<{
         source_url: item.link,
         source_name: sourceName,
         published_at: publishedAt,
+        // Operator-configured RSS feeds aren't locale-tagged individually;
+        // assumed English, matching every feed used on this site so far.
+        locale: "en",
       });
     }
   }
@@ -280,6 +292,7 @@ async function fetchFromPressSite(config: PressSiteConfig): Promise<{
       source_url: sourceUrl,
       source_name: config.sourceName,
       published_at: publishedAt,
+      locale: config.locale,
     });
   });
 
@@ -355,6 +368,7 @@ export async function syncNewsArticles(
       source_url: a.source_url,
       source_name: a.source_name,
       published_at: a.published_at,
+      locale: a.locale,
       is_published: true,
     })),
     { onConflict: "source_url", ignoreDuplicates: false },

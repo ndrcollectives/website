@@ -18,12 +18,12 @@ import { getLocale } from "@/lib/i18n/get-locale";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 
 export default async function HomePage() {
-  const [sets, products, articles, recentProducts, locale, favoriteIds] = await Promise.all([
+  const locale = await getLocale();
+  const [sets, products, articles, recentProducts, favoriteIds] = await Promise.all([
     getUpcomingSets(4),
     getFeaturedProducts(8),
-    getPublishedArticles(undefined, 3),
+    getPublishedArticles(undefined, 3, locale),
     getRecentProducts(10),
-    getLocale(),
     getFavoriteProductIds(),
   ]);
   const dict = getDictionary(locale);

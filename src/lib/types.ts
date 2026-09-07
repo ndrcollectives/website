@@ -104,6 +104,7 @@ export type NewsArticle = {
   is_published: boolean;
   source_url: string | null;
   source_name: string | null;
+  locale: "en" | "nl";
 };
 
 export type OrderStatus =
