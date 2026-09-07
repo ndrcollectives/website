@@ -2,10 +2,16 @@ import Parser from "rss-parser";
 import * as cheerio from "cheerio";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-// Automated news is aggregated, not scraped/republished in full — each
+// RSS-imported news is aggregated, not scraped/republished in full — each
 // imported item is a headline + short excerpt with a link back to the
 // original source. That's the standard, low-risk way to automate a news
-// feed; republishing full third-party articles would be a copyright risk.
+// feed from third-party sources you don't control the rights to.
+//
+// The two official-press sources are treated differently: since they are
+// The Pokémon Company's own press releases, explicitly published for
+// media use, this pulls each release's full body text from its own
+// detail page (see fetchArticleBody) and stores that as `content`,
+// rather than only the listing page's one-line teaser.
 //
 // Three independent sources, all opt-in via env vars:
 // - NEWS_RSS_FEEDS: comma-separated RSS feed URLs the operator chooses.
@@ -19,9 +25,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 //   site (near-identical markup) but a different domain, date format, and
 //   summary markup, so it gets its own PressSiteConfig rather than being
 //   folded into NEWS_OFFICIAL_PRESS — operators may want EN only, NL
-//   only, both, or neither. Articles from it are merged into the same
-//   global news feed (no locale filtering exists on the site today),
-//   distinguished by source_name like every other source.
+//   only, both, or neither. Each article is tagged with a `locale` (see
+//   ArticleLocale) so the site can show only articles matching a
+//   visitor's current locale instead of one undifferentiated feed.
 
 const USER_AGENT =
   "Mozilla/5.0 (compatible; NDRCollectivesBot/1.0; +https://ndrcollectives.vercel.app)";
@@ -264,7 +270,17 @@ async function fetchFromPressSite(config: PressSiteConfig): Promise<{
   }
 
   const $ = cheerio.load(html);
-  const articles: SyncedArticle[] = [];
+
+  type ListedItem = {
+    title: string;
+    sourceUrl: string;
+    publishedAt: string;
+    excerptText: string;
+    imageSrc: string | null;
+    editorialType: string;
+  };
+
+  const listed: ListedItem[] = [];
 
   $(".newsItem").each((_, el) => {
     const node = $(el);
@@ -282,21 +298,101 @@ async function fetchFromPressSite(config: PressSiteConfig): Promise<{
     const imageSrc = node.find("figure img").first().attr("src") ?? null;
     const editorialType = node.find(".editorial-type").first().text().trim();
 
-    articles.push({
-      title,
-      slug: `${slugify(title)}-${urlSuffix(sourceUrl)}`,
-      excerpt: truncate(excerptText, 200),
-      content: excerptText || title,
-      category: inferCategory(title, `${editorialType} ${excerptText}`),
-      cover_image_url: imageSrc,
-      source_url: sourceUrl,
-      source_name: config.sourceName,
-      published_at: publishedAt,
-      locale: config.locale,
-    });
+    listed.push({ title, sourceUrl, publishedAt, excerptText, imageSrc, editorialType });
   });
 
+  // The listing page only carries a one-line teaser per item — the full
+  // release text lives on each item's own detail page, fetched here (one
+  // request per listed item) so `content` holds the real article instead
+  // of repeating the same short excerpt shown in the news list.
+  const articles: SyncedArticle[] = await Promise.all(
+    listed.map(async (item) => {
+      const fullBody = await fetchArticleBody(item.sourceUrl);
+      return {
+        title: item.title,
+        slug: `${slugify(item.title)}-${urlSuffix(item.sourceUrl)}`,
+        excerpt: truncate(item.excerptText, 200),
+        content: fullBody || item.excerptText || item.title,
+        category: inferCategory(item.title, `${item.editorialType} ${item.excerptText}`),
+        cover_image_url: item.imageSrc,
+        source_url: item.sourceUrl,
+        source_name: config.sourceName,
+        published_at: item.publishedAt,
+        locale: config.locale,
+      };
+    }),
+  );
+
   return { articles, failures: [] };
+}
+
+// Fetches one article's own detail page and pulls its full body text
+// from the standard schema.org `itemprop="articleBody"` container —
+// both press sites run the same underlying CMS and mark up article
+// bodies with this microdata attribute, so it's used instead of a class
+// name that might legitimately differ between the two sites' templates.
+// Returns null (falling back to the listing teaser as content) if the
+// page can't be fetched or the container isn't found, rather than
+// failing the whole sync over one article's detail page.
+async function fetchArticleBody(url: string): Promise<string | null> {
+  try {
+    const res = await fetch(url, {
+      headers: { "User-Agent": USER_AGENT },
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+
+    const html = await res.text();
+    const $ = cheerio.load(html);
+    const container = $('[itemprop="articleBody"]').first();
+    if (container.length === 0) return null;
+
+    return extractArticleBody($, container) || null;
+  } catch {
+    return null;
+  }
+}
+
+// Cheerio's .text() drops <br>/<p> boundaries as plain whitespace, which
+// would run these press releases' many <br><br>-separated paragraphs and
+// pull quotes together into one unreadable wall of text. Each top-level
+// block is walked individually, and <br>/<p>/<div> boundaries are turned
+// into paragraph breaks before extracting text, so the stored plain-text
+// content keeps readable paragraph structure.
+function extractArticleBody(
+  $: cheerio.CheerioAPI,
+  container: ReturnType<cheerio.CheerioAPI>,
+): string {
+  const parts: string[] = [];
+
+  container.children().each((_, el) => {
+    const $el = $(el);
+
+    if ($el.is("ul, ol")) {
+      $el.find("li").each((_, li) => {
+        const text = htmlFragmentToParagraphs($(li).html() ?? "").join(" ");
+        if (text) parts.push(`• ${text}`);
+      });
+      return;
+    }
+
+    const html = $el.html();
+    if (html) parts.push(...htmlFragmentToParagraphs(html));
+  });
+
+  return parts.join("\n\n").trim();
+}
+
+function htmlFragmentToParagraphs(html: string): string[] {
+  const withBreaks = html
+    .replace(/<br\s*\/?>/gi, "\n\n")
+    .replace(/<\/p>/gi, "\n\n")
+    .replace(/<\/div>/gi, "\n\n");
+  const text = cheerio.load(withBreaks)("body").text();
+  return text
+    .split(/\n\s*\n/)
+    .map((p) => p.replace(/[ \t]+/g, " ").trim())
+    .filter(Boolean);
 }
 
 export type FeedFetchResult = {

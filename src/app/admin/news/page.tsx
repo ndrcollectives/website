@@ -44,12 +44,13 @@ export default async function AdminNewsPage({
           Sync News from Configured Sources
         </Button>
         <p className="mt-2 text-xs text-muted">
-          Imports headlines + short excerpts, linking back to each
-          original source rather than republishing full articles. Three
-          independent sources, all configured via Vercel env vars:{" "}
-          <code>NEWS_RSS_FEEDS</code> (comma-separated RSS feed URLs),{" "}
-          <code>NEWS_OFFICIAL_PRESS=true</code> (Pokémon&apos;s official
-          press site, press.pokemon.com/en), and{" "}
+          RSS items import as a headline + short excerpt linking back to
+          the original source. The two official press sites import their
+          full release text instead, since they&apos;re The Pokémon
+          Company&apos;s own press releases. Three independent sources,
+          all configured via Vercel env vars: <code>NEWS_RSS_FEEDS</code>{" "}
+          (comma-separated RSS feed URLs), <code>NEWS_OFFICIAL_PRESS=true</code>{" "}
+          (Pokémon&apos;s official press site, press.pokemon.com/en), and{" "}
           <code>NEWS_OFFICIAL_PRESS_NL=true</code> (its Dutch/European
           edition, pokemon.gamespress.com/nl) — neither press site has an
           RSS feed, so these parse the page directly.

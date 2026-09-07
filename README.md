@@ -95,16 +95,20 @@ combination, or none):
 - **Pokémon's official press site (NL)**: set `NEWS_OFFICIAL_PRESS_NL=true`
   to also pull from `pokemon.gamespress.com/nl`, the Dutch/European
   edition of the same press site (same CMS, no RSS either). Independent
-  of the EN flag. Articles are merged into the same global news list —
-  the site doesn't filter news by visitor locale — distinguished only by
-  their source name.
+  of the EN flag. Each article is tagged `locale: "en"` or `"nl"` (RSS
+  and the EN press site default to `"en"`) so `/news` and the homepage
+  only show articles matching the visitor's current site locale.
 - Click **"Sync News from Configured Sources"** on `/admin/news`, or let
   the daily `/api/cron/sync-news` schedule (in `vercel.json`) handle it.
-- Imported items store only a headline and a short excerpt, and link back
-  to the original source (shown on the article page and tagged with a
-  "via `<source>`" badge) — they are **not** full-text republished. This
-  keeps automation copyright-safe; verify your chosen RSS feeds' own terms
-  still permit this kind of aggregation.
+- RSS-imported items store only a headline and a short excerpt, and link
+  back to the original source (shown on the article page and tagged with
+  a "via `<source>`" badge) rather than being full-text republished —
+  verify your chosen feeds' own terms still permit this kind of
+  aggregation. The two official press-site sources are the exception:
+  since they're The Pokémon Company's own press releases meant for media
+  use, the full release text is pulled from each article's own page
+  (`itemprop="articleBody"`) and stored as `content`, not just the
+  listing's one-line teaser.
 - Leave both env vars unset to keep news purely admin-authored — the sync
   button will show an error explaining nothing's configured, and the cron
   route no-ops silently.
