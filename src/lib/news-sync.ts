@@ -7,17 +7,71 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 // original source. That's the standard, low-risk way to automate a news
 // feed; republishing full third-party articles would be a copyright risk.
 //
-// Two independent sources, both opt-in via env vars:
+// Three independent sources, all opt-in via env vars:
 // - NEWS_RSS_FEEDS: comma-separated RSS feed URLs the operator chooses.
 // - NEWS_OFFICIAL_PRESS: set to "true" to also pull from
 //   https://press.pokemon.com/en, The Pokémon Company's own official press
 //   site. It has no RSS feed, so this parses its plain server-rendered
 //   HTML instead — more stable to scrape than a JS-rendered page, but
 //   still not a stable public API, so it can break if they redesign it.
+// - NEWS_OFFICIAL_PRESS_NL: same idea, for the Dutch/European press site
+//   at https://pokemon.gamespress.com/nl. Same underlying CMS as the EN
+//   site (near-identical markup) but a different domain, date format, and
+//   summary markup, so it gets its own PressSiteConfig rather than being
+//   folded into NEWS_OFFICIAL_PRESS — operators may want EN only, NL
+//   only, both, or neither. Articles from it are merged into the same
+//   global news feed (no locale filtering exists on the site today),
+//   distinguished by source_name like every other source.
 
-const PRESS_SITE_URL = "https://press.pokemon.com/en";
 const USER_AGENT =
   "Mozilla/5.0 (compatible; NDRCollectivesBot/1.0; +https://ndrcollectives.vercel.app)";
+
+type PressSiteConfig = {
+  url: string;
+  baseOrigin: string;
+  sourceName: string;
+  parseDate: (dateText: string) => Date | null;
+  getSummary: ($: cheerio.CheerioAPI, node: ReturnType<cheerio.CheerioAPI>) => string;
+};
+
+// press.pokemon.com's date text has parsed fine with the native Date
+// constructor in practice; kept as-is rather than guessing its format.
+function parseEnglishPressDate(dateText: string): Date | null {
+  const parsed = new Date(dateText);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+// pokemon.gamespress.com/nl dates are "d-m-yyyy" (e.g. "31-8-2026"),
+// which the native Date constructor cannot be trusted to parse
+// consistently (dash-separated dates are ambiguous between d-m-y and
+// m-d-y across engines) — parsed explicitly instead.
+function parseDutchPressDate(dateText: string): Date | null {
+  const match = dateText.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+  if (!match) return null;
+  const [, day, month, year] = match;
+  const parsed = new Date(Number(year), Number(month) - 1, Number(day));
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+const EN_PRESS_CONFIG: PressSiteConfig = {
+  url: "https://press.pokemon.com/en",
+  baseOrigin: "https://press.pokemon.com",
+  sourceName: "Pokémon Official Press Site",
+  parseDate: parseEnglishPressDate,
+  getSummary: (_$, node) => node.find(".intro").first().text().trim().replace(/\s+/g, " "),
+};
+
+const NL_PRESS_CONFIG: PressSiteConfig = {
+  url: "https://pokemon.gamespress.com/nl",
+  baseOrigin: "https://pokemon.gamespress.com",
+  sourceName: "Pokémon Persberichten (NL)",
+  parseDate: parseDutchPressDate,
+  // Summary lives in ".one-language.intro em" and is often absent —
+  // items with no <em> (just the localisations link) get an empty
+  // summary, same as press items with no .intro text.
+  getSummary: (_$, node) =>
+    node.find(".one-language.intro em").first().text().trim().replace(/\s+/g, " "),
+};
 
 export type NewsCategory =
   | "Set Release"
@@ -60,6 +114,10 @@ function isOfficialPressEnabled(): boolean {
   return process.env.NEWS_OFFICIAL_PRESS === "true";
 }
 
+function isOfficialPressNLEnabled(): boolean {
+  return process.env.NEWS_OFFICIAL_PRESS_NL === "true";
+}
+
 function slugify(title: string): string {
   return title
     .toLowerCase()
@@ -95,9 +153,11 @@ function truncate(text: string, max: number): string {
 
 function inferCategory(title: string, summary: string): NewsCategory {
   const text = `${title} ${summary}`.toLowerCase();
-  if (/(leak|spoiler|reveal|scan)/.test(text)) return "Card Spoilers";
-  if (/(regional|championship|tournament|worlds|meta)/.test(text)) return "Tournament";
-  if (/(release|set|expansion|preorder|pre-order)/.test(text)) return "Set Release";
+  if (/(leak|spoiler|reveal|scan|onthulling|voorbeeldkaart)/.test(text)) return "Card Spoilers";
+  if (/(regional|championship|tournament|worlds|meta|kampioenschap|toernooi)/.test(text))
+    return "Tournament";
+  if (/(release|set|expansion|preorder|pre-order|uitbreiding|lancering)/.test(text))
+    return "Set Release";
   return "Market News";
 }
 
@@ -158,17 +218,20 @@ async function fetchFromRssFeeds(): Promise<{
   return { articles, failures };
 }
 
-// Parses https://press.pokemon.com/en's plain server-rendered "Recent
-// News" list — each release is a `.newsItem` with a `.headline a`,
-// `.date`, `.intro` excerpt, and a `figure img`. No RSS is offered here,
-// so this scrapes the same page a human visitor sees.
-async function fetchFromOfficialPress(): Promise<{
+// Parses a Gamespress-platform press site's plain server-rendered news
+// list — each release is a `.newsItem` with a `.headline a`, `.date`,
+// a summary, and a `figure img`. Neither the EN nor NL site offers an
+// RSS feed, so this scrapes the same page a human visitor sees. The
+// two sites share markup closely enough to use one parser, differing
+// only in origin, date format, and where the summary text lives —
+// captured in `config`.
+async function fetchFromPressSite(config: PressSiteConfig): Promise<{
   articles: SyncedArticle[];
   failures: SourceFailure[];
 }> {
   let html: string;
   try {
-    const res = await fetch(PRESS_SITE_URL, {
+    const res = await fetch(config.url, {
       headers: { "User-Agent": USER_AGENT },
       cache: "no-store",
     });
@@ -181,7 +244,7 @@ async function fetchFromOfficialPress(): Promise<{
       articles: [],
       failures: [
         {
-          source: PRESS_SITE_URL,
+          source: config.url,
           message: error instanceof Error ? error.message : String(error),
         },
       ],
@@ -198,15 +261,12 @@ async function fetchFromOfficialPress(): Promise<{
     const href = headlineLink.attr("href");
     if (!title || !href) return;
 
-    const sourceUrl = new URL(href, PRESS_SITE_URL).toString();
+    const sourceUrl = new URL(href, config.baseOrigin).toString();
     const dateText = node.find(".date").first().text().trim();
-    const parsedDate = dateText ? new Date(dateText) : null;
-    const publishedAt =
-      parsedDate && !Number.isNaN(parsedDate.getTime())
-        ? parsedDate.toISOString()
-        : new Date().toISOString();
+    const parsedDate = dateText ? config.parseDate(dateText) : null;
+    const publishedAt = parsedDate ? parsedDate.toISOString() : new Date().toISOString();
 
-    const excerptText = node.find(".intro").first().text().trim().replace(/\s+/g, " ");
+    const excerptText = config.getSummary($, node);
     const imageSrc = node.find("figure img").first().attr("src") ?? null;
     const editorialType = node.find(".editorial-type").first().text().trim();
 
@@ -218,7 +278,7 @@ async function fetchFromOfficialPress(): Promise<{
       category: inferCategory(title, `${editorialType} ${excerptText}`),
       cover_image_url: imageSrc,
       source_url: sourceUrl,
-      source_name: "Pokémon Official Press Site",
+      source_name: config.sourceName,
       published_at: publishedAt,
     });
   });
@@ -235,25 +295,29 @@ export type FeedFetchResult = {
 
 export async function fetchConfiguredNews(): Promise<FeedFetchResult> {
   const officialPressEnabled = isOfficialPressEnabled();
+  const officialPressNLEnabled = isOfficialPressNLEnabled();
   const feeds = getConfiguredFeeds();
 
-  if (feeds.length === 0 && !officialPressEnabled) {
+  if (feeds.length === 0 && !officialPressEnabled && !officialPressNLEnabled) {
     throw new Error(
-      "No news sources configured — set NEWS_RSS_FEEDS and/or NEWS_OFFICIAL_PRESS=true.",
+      "No news sources configured — set NEWS_RSS_FEEDS, NEWS_OFFICIAL_PRESS=true, and/or NEWS_OFFICIAL_PRESS_NL=true.",
     );
   }
 
-  const [rssResult, pressResult] = await Promise.all([
+  const [rssResult, pressResult, pressNLResult] = await Promise.all([
     feeds.length > 0
       ? fetchFromRssFeeds()
       : Promise.resolve({ articles: [], failures: [] }),
     officialPressEnabled
-      ? fetchFromOfficialPress()
+      ? fetchFromPressSite(EN_PRESS_CONFIG)
+      : Promise.resolve({ articles: [], failures: [] }),
+    officialPressNLEnabled
+      ? fetchFromPressSite(NL_PRESS_CONFIG)
       : Promise.resolve({ articles: [], failures: [] }),
   ]);
 
-  const articles = [...rssResult.articles, ...pressResult.articles];
-  const failures = [...rssResult.failures, ...pressResult.failures];
+  const articles = [...rssResult.articles, ...pressResult.articles, ...pressNLResult.articles];
+  const failures = [...rssResult.failures, ...pressResult.failures, ...pressNLResult.failures];
 
   if (articles.length === 0 && failures.length > 0) {
     throw new Error(failures.map((f) => `${f.source}: ${f.message}`).join("; "));

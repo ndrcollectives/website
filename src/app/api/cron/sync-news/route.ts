@@ -14,9 +14,14 @@ export async function GET(request: Request) {
     }
   }
 
-  if (!process.env.NEWS_RSS_FEEDS && process.env.NEWS_OFFICIAL_PRESS !== "true") {
+  if (
+    !process.env.NEWS_RSS_FEEDS &&
+    process.env.NEWS_OFFICIAL_PRESS !== "true" &&
+    process.env.NEWS_OFFICIAL_PRESS_NL !== "true"
+  ) {
     return NextResponse.json({
-      skipped: "No news sources configured (NEWS_RSS_FEEDS / NEWS_OFFICIAL_PRESS)",
+      skipped:
+        "No news sources configured (NEWS_RSS_FEEDS / NEWS_OFFICIAL_PRESS / NEWS_OFFICIAL_PRESS_NL)",
     });
   }
 

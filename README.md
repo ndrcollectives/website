@@ -80,18 +80,24 @@ third-party API server, so it isn't affected by api.pokemontcg.io's outages:
 ### 6. News: hand-written and/or automated
 
 News is admin-authored by default through the CMS at `/admin/news`. You can
-additionally automate it from two independent sources (use either, both,
-or neither):
+additionally automate it from three independent sources (use any
+combination, or none):
 
 - **RSS**: set `NEWS_RSS_FEEDS` to a comma-separated list of feed URLs you
   have the right to aggregate from (e.g. a TCG news site's own RSS, a
   subreddit's `.rss` feed).
-- **Pokémon's official press site**: set `NEWS_OFFICIAL_PRESS=true` to
-  pull from `press.pokemon.com` (The Pokémon Company's own press site).
+- **Pokémon's official press site (EN)**: set `NEWS_OFFICIAL_PRESS=true` to
+  pull from `press.pokemon.com/en` (The Pokémon Company's own press site).
   It doesn't publish an RSS feed, so this parses the page's plain HTML
   directly (`lib/news-sync.ts`) rather than a stable public API — a
   redesign of that site could break it silently, so re-check it
   occasionally.
+- **Pokémon's official press site (NL)**: set `NEWS_OFFICIAL_PRESS_NL=true`
+  to also pull from `pokemon.gamespress.com/nl`, the Dutch/European
+  edition of the same press site (same CMS, no RSS either). Independent
+  of the EN flag. Articles are merged into the same global news list —
+  the site doesn't filter news by visitor locale — distinguished only by
+  their source name.
 - Click **"Sync News from Configured Sources"** on `/admin/news`, or let
   the daily `/api/cron/sync-news` schedule (in `vercel.json`) handle it.
 - Imported items store only a headline and a short excerpt, and link back
