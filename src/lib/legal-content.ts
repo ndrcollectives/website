@@ -88,7 +88,7 @@ const en: Record<"terms" | "privacy" | "returns" | "shipping", LegalDoc> = {
       {
         heading: "What we collect",
         body: [
-          "Account data: email address, and name if you provide one. Order data: items purchased, shipping address, order history. Site usage: favorites, language preference, and cookie-consent choices (see Cookie Policy). We never collect or store your full card payment details — PayPal handles that directly.",
+          "Account data: email address, and name if you provide one. Order data: items purchased, shipping address, order history. Site usage: wishlist, language preference, and cookie-consent choices (see Cookie Policy). We never collect or store your full card payment details — PayPal handles that directly.",
         ],
       },
       {
@@ -272,7 +272,7 @@ const nl: Record<"terms" | "privacy" | "returns" | "shipping", LegalDoc> = {
       {
         heading: "Wat we verzamelen",
         body: [
-          "Accountgegevens: e-mailadres en naam indien opgegeven. Bestelgegevens: gekochte artikelen, verzendadres, bestelgeschiedenis. Sitegebruik: favorieten, taalvoorkeur en cookievoorkeuren (zie Cookiebeleid). We verzamelen of bewaren nooit je volledige betaalkaartgegevens — dat verloopt rechtstreeks via PayPal.",
+          "Accountgegevens: e-mailadres en naam indien opgegeven. Bestelgegevens: gekochte artikelen, verzendadres, bestelgeschiedenis. Sitegebruik: verlanglijst, taalvoorkeur en cookievoorkeuren (zie Cookiebeleid). We verzamelen of bewaren nooit je volledige betaalkaartgegevens — dat verloopt rechtstreeks via PayPal.",
         ],
       },
       {

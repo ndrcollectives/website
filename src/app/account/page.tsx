@@ -36,7 +36,7 @@ export default async function AccountPage() {
         <Link href="/account/preferences">
           <Button variant="secondary">{dict.accountPreferences.title}</Button>
         </Link>
-        <Link href="/account/favorites">
+        <Link href="/account/wishlist">
           <Button variant="secondary">{dict.favorites.title}</Button>
         </Link>
         <form action={signOut}>

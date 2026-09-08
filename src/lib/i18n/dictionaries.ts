@@ -20,7 +20,7 @@ const en = {
     settings: "Settings",
     openCart: "Open cart",
     toggleMenu: "Toggle menu",
-    favorites: "Favorites",
+    favorites: "Wishlist",
   },
   footer: {
     tagline:
@@ -113,10 +113,10 @@ const en = {
     redirecting: "Redirecting...",
   },
   favorites: {
-    title: "Favorites",
-    add: "Add to favorites",
-    remove: "Remove from favorites",
-    emptyTitle: "No favorites yet",
+    title: "Wishlist",
+    add: "Add to wishlist",
+    remove: "Remove from wishlist",
+    emptyTitle: "Your wishlist is empty",
     emptyBody: "Tap the heart on any card or product to save it here.",
     browseShop: "Browse Shop",
     back: "Back to Account",
@@ -186,7 +186,7 @@ const nl: Dictionary = {
     settings: "Instellingen",
     openCart: "Winkelwagen openen",
     toggleMenu: "Menu wisselen",
-    favorites: "Favorieten",
+    favorites: "Verlanglijst",
   },
   footer: {
     tagline:
@@ -279,10 +279,10 @@ const nl: Dictionary = {
     redirecting: "Doorverwijzen...",
   },
   favorites: {
-    title: "Favorieten",
-    add: "Toevoegen aan favorieten",
-    remove: "Verwijderen uit favorieten",
-    emptyTitle: "Nog geen favorieten",
+    title: "Verlanglijst",
+    add: "Toevoegen aan verlanglijst",
+    remove: "Verwijderen uit verlanglijst",
+    emptyTitle: "Je verlanglijst is leeg",
     emptyBody: "Tik op het hartje bij een kaart of product om het hier op te slaan.",
     browseShop: "Naar de shop",
     back: "Terug naar Account",

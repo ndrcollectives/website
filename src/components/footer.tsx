@@ -132,7 +132,7 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/account/favorites" className="hover:text-accent-yellow">
+                <Link href="/account/wishlist" className="hover:text-accent-yellow">
                   {dict.nav.favorites}
                 </Link>
               </li>

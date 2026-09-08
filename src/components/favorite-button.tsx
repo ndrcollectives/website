@@ -5,7 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n/language-context";
-import { toggleFavorite } from "@/app/account/favorites/actions";
+import { toggleFavorite } from "@/app/account/wishlist/actions";
 
 type FavoriteButtonProps = {
   initialFavorited?: boolean;

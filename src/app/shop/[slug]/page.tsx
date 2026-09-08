@@ -58,7 +58,17 @@ export default async function ProductDetailPage({ params }: Props) {
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Shop", item: "/shop" },
-      { "@type": "ListItem", position: 2, name: product.title },
+      ...(product.set
+        ? [
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: product.set.name,
+              item: `/sets/${product.set.code}`,
+            },
+          ]
+        : []),
+      { "@type": "ListItem", position: product.set ? 3 : 2, name: product.title },
     ],
   };
 
@@ -77,6 +87,14 @@ export default async function ProductDetailPage({ params }: Props) {
         <Link href="/shop" className="hover:text-accent-yellow">
           Shop
         </Link>{" "}
+        {product.set && (
+          <>
+            /{" "}
+            <Link href={`/sets/${product.set.code}`} className="hover:text-accent-yellow">
+              {product.set.name}
+            </Link>{" "}
+          </>
+        )}
         / <span>{product.title}</span>
       </nav>
 

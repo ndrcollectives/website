@@ -9,9 +9,9 @@ import { getFavoriteEntries } from "@/lib/queries";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 
-export default async function FavoritesPage() {
+export default async function WishlistPage() {
   const profile = await getCurrentProfile();
-  if (!profile) redirect("/sign-in?next=/account/favorites");
+  if (!profile) redirect("/sign-in?next=/account/wishlist");
 
   const [entries, locale] = await Promise.all([
     getFavoriteEntries(profile.id),

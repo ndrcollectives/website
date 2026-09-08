@@ -31,7 +31,7 @@ export async function toggleFavorite(target: FavoriteTarget): Promise<ToggleResu
 
   revalidatePath("/shop");
   revalidatePath("/sets/[code]", "page");
-  revalidatePath("/account/favorites");
+  revalidatePath("/account/wishlist");
 
   return { ok: true, favorited: !existing };
 }
