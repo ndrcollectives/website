@@ -2,9 +2,10 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchAllRows } from "@/lib/supabase/paginate";
+import { formatDate } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { ProductTable } from "@/components/admin/product-table";
 import { backfillProductImages, createProduct } from "./actions";
 
@@ -28,7 +29,10 @@ export default async function AdminProductsPage({
       .from("products")
       .select("*, set:sets(name)")
       .order("created_at", { ascending: false }),
-    supabase.from("sets").select("id, name, era").order("name"),
+    supabase
+      .from("sets")
+      .select("id, name, code, era, release_date")
+      .order("release_date", { ascending: false }),
     fetchAllRows<{ set_id: string }>((from, to) =>
       supabase.from("cards").select("set_id").range(from, to),
     ),
@@ -95,23 +99,36 @@ export default async function AdminProductsPage({
           </Link>
           .
         </p>
-        <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-3 space-y-3">
           {sets?.map((s) => {
             const cardCount = cardCountBySetId.get(s.id) ?? 0;
             return (
-              <Link
+              <div
                 key={s.id}
-                href={`/admin/products/by-set/${s.id}`}
-                className="flex items-center justify-between rounded-lg border border-border bg-surface-raised px-3 py-2 text-sm hover:border-accent-yellow/50"
+                className="flex items-center justify-between rounded-xl border border-border bg-surface-raised p-4"
               >
-                <span>
-                  <span className="font-medium">{s.name}</span>{" "}
-                  <span className="text-muted">&middot; {s.era}</span>
-                </span>
-                <span className={cardCount === 0 ? "text-accent-red" : "text-muted"}>
-                  {cardCount === 0 ? "not synced" : `${cardCount} cards`}
-                </span>
-              </Link>
+                <div>
+                  <p className="font-semibold">{s.name}</p>
+                  <p className="text-sm text-muted">
+                    {s.era} &middot; {formatDate(s.release_date)} &middot;{" "}
+                    <span className={cardCount === 0 ? "text-accent-red" : undefined}>
+                      {cardCount === 0 ? "not synced" : `${cardCount} cards`}
+                    </span>
+                  </p>
+                  <Link
+                    href={`/sets/${s.code}`}
+                    className="text-sm text-accent-blue hover:underline"
+                  >
+                    View card list &rarr;
+                  </Link>
+                </div>
+                <Link
+                  href={`/admin/products/by-set/${s.id}`}
+                  className={buttonVariants({ size: "sm", variant: "secondary" })}
+                >
+                  Manage Listings
+                </Link>
+              </div>
             );
           })}
         </div>
