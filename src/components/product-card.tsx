@@ -28,7 +28,7 @@ export function ProductCard({
         initialFavorited={favorited}
         className="absolute right-2 top-2 z-10"
       />
-      <Link href={`/shop/${product.slug}`} className="holo-card relative block aspect-[3/4] bg-surface-raised">
+      <Link href={`/shop/${product.slug}`} className="holo-card relative block aspect-[5/7] bg-surface-raised">
         {image ? (
           <Image
             src={image}

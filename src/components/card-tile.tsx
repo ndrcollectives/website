@@ -19,7 +19,7 @@ export function CardTile({
   const image = card.image_large ?? card.image_small;
   const content = (
     <>
-      <div className="holo-card relative flex aspect-[3/4] items-center justify-center overflow-hidden bg-surface-raised">
+      <div className="holo-card relative flex aspect-[5/7] items-center justify-center overflow-hidden bg-surface-raised">
         {image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img

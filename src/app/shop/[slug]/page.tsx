@@ -105,11 +105,11 @@ export default async function ProductDetailPage({ params }: Props) {
               <HoloCard
                 src={product.images[0]}
                 alt={product.title}
-                className="aspect-[3/4] w-full"
+                className="aspect-[5/7] w-full"
                 priority
               />
             ) : (
-              <div className="flex aspect-[3/4] items-center justify-center rounded-xl bg-surface-raised text-muted">
+              <div className="flex aspect-[5/7] items-center justify-center rounded-xl bg-surface-raised text-muted">
                 No image available
               </div>
             )}

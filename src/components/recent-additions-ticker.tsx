@@ -21,7 +21,7 @@ export function RecentAdditionsTicker({ products }: { products: Product[] }) {
             href={`/shop/${product.slug}`}
             className="flex w-36 shrink-0 flex-col overflow-hidden rounded-xl border border-border bg-surface transition-colors hover:border-accent-yellow/50"
           >
-            <div className="relative aspect-[3/4] bg-surface-raised">
+            <div className="relative aspect-[5/7] bg-surface-raised">
               {product.images?.[0] ? (
                 <Image
                   src={product.images[0]}
