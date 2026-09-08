@@ -13,15 +13,23 @@ import { getRarityTier, type RarityTier } from "@/lib/rarity";
 // below. Double Rare (ex-Pokémon holo rares, always printed Holofoil)
 // averaged ~€0.55.
 //
-// illustration-rare/ultra-rare are calibrated against PriceCharting
-// data for Pitch Black cards #85-101 (special-art numbering above the
-// base 84-card set, each only printed Holofoil): non-"ex" Pokémon
-// (Illustration Rare) averaged ~€4.47 across 11 cards, "X ex" Pokémon
-// (Ultra Rare) averaged ~€6.16 across 6 cards, in line with a real
-// Ultra Rare Trainer (Gwynn) at ~€7.12 — blended to ~€6.30. Both PDF
-// captures cut off partway through their set (44/84 and 101/~150+
-// cards respectively) before reaching secret-rare/special-illustration
-// -rare territory, so those two stay rough estimates.
+// illustration-rare/ultra-rare/special-illustration-rare/secret-rare
+// are calibrated against PriceCharting data for the full Pitch Black
+// special-art numbering above the base 84-card set (#85-120, each only
+// printed Holofoil), which turned out to have three stacked bands:
+// - #85-101: non-"ex" Pokémon (Illustration Rare) averaged ~€4.47
+//   across 11 cards; "X ex" Pokémon (Ultra Rare) averaged ~€6.16
+//   across 6 cards, in line with a real Ultra Rare Trainer (Gwynn) at
+//   ~€7.12 — blended to ~€6.30.
+// - #102-113: alt-art reprints of ordinary Trainer/Item cards (Special
+//   Illustration Rare) averaged ~€4.85 across 12 cards — similar
+//   magnitude to Illustration Rare despite the higher technical
+//   rarity, since demand tracks the character/card depicted more than
+//   the rarity label itself.
+// - #114-120: alt-art reprints of the chase "ex" Pokémon plus a gold
+//   parallel (Secret/Hyper Rare) averaged ~€81 across 7 cards, ranging
+//   €25-€199 — by far the widest spread of any tier, so this one is
+//   the roughest of the "real data" estimates.
 export const BASE_PRICE_CENTS: Record<RarityTier, number> = {
   common: 8,
   uncommon: 10,
@@ -30,8 +38,8 @@ export const BASE_PRICE_CENTS: Record<RarityTier, number> = {
   "double-rare": 20,
   "ultra-rare": 252,
   "illustration-rare": 180,
-  "secret-rare": 600,
-  "special-illustration-rare": 800,
+  "special-illustration-rare": 195,
+  "secret-rare": 3200,
 };
 
 export const VARIANT_MULTIPLIERS: Record<string, number> = {
