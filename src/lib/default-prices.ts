@@ -13,6 +13,11 @@ import { getRarityTier, type RarityTier } from "@/lib/rarity";
 // below. Double Rare (ex-Pokémon holo rares, always printed Holofoil)
 // averaged ~€0.55.
 //
+// rare-holo (the pre-Scarlet & Violet label for a guaranteed-holo rare,
+// used in older-block sets) has no real data behind it — it's treated
+// as the same tier as double-rare (SV-era guaranteed-holo "ex" rares)
+// and priced the same, rather than the old unreviewed €0.60 guess.
+//
 // illustration-rare/ultra-rare/special-illustration-rare/secret-rare
 // are calibrated against PriceCharting data for the full Pitch Black
 // special-art numbering above the base 84-card set (#85-120, each only
@@ -34,7 +39,7 @@ export const BASE_PRICE_CENTS: Record<RarityTier, number> = {
   common: 8,
   uncommon: 10,
   rare: 12,
-  "rare-holo": 60,
+  "rare-holo": 20,
   "double-rare": 20,
   "ultra-rare": 252,
   "illustration-rare": 180,
