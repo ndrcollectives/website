@@ -6,6 +6,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   ChevronRight,
   Heart,
+  Home,
   Menu,
   Newspaper,
   Search,
@@ -109,6 +110,7 @@ export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
   const suggestions = useCardSuggestions(query);
 
   const NAV_LINKS = [
+    { href: "/", label: dict.nav.home, icon: Home },
     { href: "/news", label: dict.nav.news, icon: Newspaper },
     { href: "/shop", label: dict.nav.shop, icon: ShoppingBag },
     { href: "/sets", label: dict.nav.sets, icon: Layers },

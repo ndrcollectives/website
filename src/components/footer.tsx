@@ -168,7 +168,30 @@ export function Footer() {
           <NewsletterSignup />
         </div>
 
-        <p className="mt-10 border-t border-border pt-6 text-xs text-muted">
+        <div className="mt-10 border-t border-border pt-6">
+          <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted">
+            {dict.footer.policiesHeading}
+          </h4>
+          <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-muted">
+            <Link href="/terms" className="hover:text-accent-yellow">
+              {dict.footer.terms}
+            </Link>
+            <Link href="/privacy" className="hover:text-accent-yellow">
+              {dict.footer.privacy}
+            </Link>
+            <Link href="/returns" className="hover:text-accent-yellow">
+              {dict.footer.returns}
+            </Link>
+            <Link href="/shipping" className="hover:text-accent-yellow">
+              {dict.footer.shipping}
+            </Link>
+            <Link href="/cookies" className="hover:text-accent-yellow">
+              {dict.footer.cookiePolicy}
+            </Link>
+          </div>
+        </div>
+
+        <p className="mt-6 border-t border-border pt-6 text-xs text-muted">
           © {new Date().getFullYear()} NDR Collectives. {dict.footer.disclaimer}
         </p>
       </div>

@@ -8,6 +8,7 @@ export const LANGUAGE_COOKIE = "ndr-lang";
 
 const en = {
   nav: {
+    home: "Home",
     shop: "Shop",
     sets: "Sets",
     news: "News",
@@ -37,6 +38,12 @@ const en = {
     helpHeading: "Help & Support",
     faq: "FAQ",
     contactUs: "Contact Us",
+    policiesHeading: "Terms & Policies",
+    terms: "Terms & Conditions",
+    privacy: "Privacy Policy",
+    returns: "Returns Policy",
+    shipping: "Shipping Policy",
+    cookiePolicy: "Cookie Policy",
     disclaimer:
       "Not affiliated with The Pokémon Company, Nintendo, Creatures, or Game Freak.",
   },
@@ -167,6 +174,7 @@ export type Dictionary = DeepStringify<typeof en>;
 
 const nl: Dictionary = {
   nav: {
+    home: "Home",
     shop: "Shop",
     sets: "Sets",
     news: "Nieuws",
@@ -196,6 +204,12 @@ const nl: Dictionary = {
     helpHeading: "Help & Support",
     faq: "Veelgestelde vragen",
     contactUs: "Neem contact op",
+    policiesHeading: "Voorwaarden & Beleid",
+    terms: "Algemene voorwaarden",
+    privacy: "Privacybeleid",
+    returns: "Retourbeleid",
+    shipping: "Verzendbeleid",
+    cookiePolicy: "Cookiebeleid",
     disclaimer:
       "Niet verbonden met The Pokémon Company, Nintendo, Creatures of Game Freak.",
   },
