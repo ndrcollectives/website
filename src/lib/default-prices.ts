@@ -10,7 +10,7 @@ export const BASE_PRICE_CENTS: Record<RarityTier, number> = {
   uncommon: 15,
   rare: 30,
   "rare-holo": 60,
-  "ultra-rare": 200,
+  "ultra-rare": 800,
   "illustration-rare": 350,
   "secret-rare": 600,
   "special-illustration-rare": 800,
