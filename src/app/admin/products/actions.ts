@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { fetchAllRows } from "@/lib/supabase/paginate";
 import { normalizeCardNumber } from "@/lib/card-number";
 
 function slugify(title: string) {
@@ -140,17 +141,25 @@ export async function backfillProductImages() {
   }
 
   const setIds = Array.from(new Set(targets.map((p) => p.set_id as string)));
-  const { data: cardsData } = await supabase
-    .from("cards")
-    .select("set_id, number, image_large, image_small")
-    .in("set_id", setIds);
+  const cardsData = await fetchAllRows<{
+    set_id: string;
+    number: string;
+    image_large: string | null;
+    image_small: string | null;
+  }>((from, to) =>
+    supabase
+      .from("cards")
+      .select("set_id, number, image_large, image_small")
+      .in("set_id", setIds)
+      .range(from, to),
+  );
 
   const cardsPerSet = new Map<string, number>();
-  for (const c of cardsData ?? []) {
+  for (const c of cardsData) {
     cardsPerSet.set(c.set_id, (cardsPerSet.get(c.set_id) ?? 0) + 1);
   }
   const cardImages = new Map(
-    (cardsData ?? [])
+    cardsData
       .filter((c) => c.image_large || c.image_small)
       .map((c) => [`${c.set_id}::${c.number}`, (c.image_large ?? c.image_small) as string]),
   );

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { fetchAllRows } from "@/lib/supabase/paginate";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -22,18 +23,20 @@ export default async function AdminProductsPage({
   const { backfilled, noNumberMatch, unsyncedSets } = await searchParams;
   const supabase = createAdminClient();
 
-  const [{ data: products }, { data: sets }, { data: cards }] = await Promise.all([
+  const [{ data: products }, { data: sets }, cardSetIds] = await Promise.all([
     supabase
       .from("products")
       .select("*, set:sets(name)")
       .order("created_at", { ascending: false }),
     supabase.from("sets").select("id, name, era").order("name"),
-    supabase.from("cards").select("set_id"),
+    fetchAllRows<{ set_id: string }>((from, to) =>
+      supabase.from("cards").select("set_id").range(from, to),
+    ),
   ]);
 
   const cardCountBySetId = new Map<string, number>();
-  for (const c of cards ?? []) {
-    cardCountBySetId.set(c.set_id, (cardCountBySetId.get(c.set_id) ?? 0) + 1);
+  for (const { set_id } of cardSetIds) {
+    cardCountBySetId.set(set_id, (cardCountBySetId.get(set_id) ?? 0) + 1);
   }
 
   type ProductRow = {
