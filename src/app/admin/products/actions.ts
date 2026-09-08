@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { buildProductInserts, parseProductCsv, type ImportSummary } from "@/lib/product-import";
 import { normalizeCardNumber } from "@/lib/card-number";
 
 function slugify(title: string) {
@@ -86,76 +85,38 @@ export async function updateProductImages(formData: FormData) {
   revalidatePath("/shop");
 }
 
-// Imports a collection-tracker CSV export (see product-import.ts for the
-// expected columns) as product listings. Matches each row's "Set" to a
-// synced set by name and, when a matching card was synced, uses its
-// artwork as the listing image automatically.
-export async function importProductsCsv(formData: FormData) {
+// Creates a single-card listing straight from a synced catalog card (see
+// admin/products/by-set/[setId]) — title/image/rarity come from the card
+// record itself, so there's no separate image-fixing step needed. Variant
+// (Normal/Reverse Holofoil/etc.) isn't a field on `cards` (that table is
+// pure card identity, one row per print), so it's folded into the title
+// the same way CSV import used to, keeping each variant a distinct row.
+export async function createProductFromCard(formData: FormData) {
   await requireAdmin();
   const supabase = createAdminClient();
 
-  const file = formData.get("file");
-  if (!(file instanceof File) || file.size === 0) {
-    redirect(`/admin/products?importError=${encodeURIComponent("Choose a CSV file first")}`);
-  }
+  const cardName = String(formData.get("card_name") ?? "");
+  const variant = String(formData.get("variant") ?? "Normal");
+  const title = variant === "Normal" ? cardName : `${cardName} · ${variant}`;
+  const image = String(formData.get("image") ?? "");
 
-  let summary: ImportSummary;
-  try {
-    const text = await file.text();
-    const rows = parseProductCsv(text);
+  const { error } = await supabase.from("products").insert({
+    title,
+    slug: `${slugify(title)}-${Date.now().toString(36)}`,
+    product_type: "single",
+    set_id: String(formData.get("set_id") ?? "") || null,
+    card_number: String(formData.get("card_number") ?? "") || null,
+    rarity: String(formData.get("rarity") ?? "") || null,
+    price_cents: Math.round(Number(formData.get("price")) * 100),
+    inventory_count: Number(formData.get("quantity") ?? 0),
+    images: image ? [image] : [],
+  });
 
-    // Fetching every synced set (not just ones named in this CSV) since
-    // resolveSetId's alias/pattern fallbacks need the full catalog to
-    // check against, not just exact-name hits.
-    const { data: allSets } = await supabase.from("sets").select("id, name");
-    const setIds = (allSets ?? []).map((s) => s.id as string);
-
-    const { data: cardsData } = setIds.length
-      ? await supabase
-          .from("cards")
-          .select("set_id, number, image_large, image_small")
-          .in("set_id", setIds)
-      : { data: [] };
-    const cardImages = new Map(
-      (cardsData ?? [])
-        .filter((c) => c.image_large || c.image_small)
-        .map((c) => [`${c.set_id}::${c.number}`, (c.image_large ?? c.image_small) as string]),
-    );
-
-    const { data: existingData } = await supabase
-      .from("products")
-      .select("set_id, card_number, condition, title");
-    const existingKeys = new Set(
-      (existingData ?? []).map((p) => `${p.set_id ?? "none"}::${p.card_number}::${p.condition}::${p.title}`),
-    );
-
-    const { inserts, summary: builtSummary } = buildProductInserts(
-      rows,
-      allSets ?? [],
-      cardImages,
-      existingKeys,
-    );
-    summary = builtSummary;
-
-    if (inserts.length > 0) {
-      const { error } = await supabase.from("products").insert(inserts);
-      if (error) throw new Error(error.message);
-    }
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "CSV import failed";
-    redirect(`/admin/products?importError=${encodeURIComponent(message)}`);
-  }
-
+  if (error) throw new Error(error.message);
   revalidatePath("/admin/products");
   revalidatePath("/shop");
-
-  const params = new URLSearchParams({ imported: String(summary.inserted) });
-  if (summary.skippedDuplicate) params.set("skippedDuplicate", String(summary.skippedDuplicate));
-  if (summary.skippedNoPrice) params.set("skippedNoPrice", String(summary.skippedNoPrice));
-  if (summary.importedWithoutSet.length) {
-    params.set("importedWithoutSet", summary.importedWithoutSet.join(", "));
-  }
-  redirect(`/admin/products?${params.toString()}`);
+  const setId = String(formData.get("set_id") ?? "");
+  if (setId) revalidatePath(`/admin/products/by-set/${setId}`);
 }
 
 // Fixes up products that were listed with no image but do have a set +

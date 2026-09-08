@@ -97,6 +97,13 @@ export default async function AdminSetsPage({
               >
                 View card list &rarr;
               </Link>
+              {" · "}
+              <Link
+                href={`/admin/products/by-set/${set.id}`}
+                className="text-sm text-accent-blue hover:underline"
+              >
+                Manage listings &rarr;
+              </Link>
             </div>
             <div className="flex items-center gap-2">
               <form action={syncCardsForSet}>

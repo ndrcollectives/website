@@ -1,17 +1,13 @@
+import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { ProductTable } from "@/components/admin/product-table";
-import { backfillProductImages, createProduct, importProductsCsv } from "./actions";
+import { backfillProductImages, createProduct } from "./actions";
 
 type SearchParams = {
-  imported?: string;
-  importError?: string;
-  skippedDuplicate?: string;
-  skippedNoPrice?: string;
-  importedWithoutSet?: string;
   backfilled?: string;
   noNumberMatch?: string;
   unsyncedSets?: string;
@@ -23,16 +19,7 @@ export default async function AdminProductsPage({
   searchParams: Promise<SearchParams>;
 }) {
   await requireAdmin();
-  const {
-    imported,
-    importError,
-    skippedDuplicate,
-    skippedNoPrice,
-    importedWithoutSet,
-    backfilled,
-    noNumberMatch,
-    unsyncedSets,
-  } = await searchParams;
+  const { backfilled, noNumberMatch, unsyncedSets } = await searchParams;
   const supabase = createAdminClient();
 
   const [{ data: products }, { data: sets }] = await Promise.all([
@@ -86,35 +73,17 @@ export default async function AdminProductsPage({
   return (
     <div>
       <h1 className="text-2xl font-bold">Product Manager</h1>
+      <p className="mt-2 text-sm text-muted">
+        To list singles from a set you have in stock, go to{" "}
+        <Link href="/admin/sets" className="text-accent-blue hover:underline">
+          Set Manager
+        </Link>{" "}
+        and click <strong>Manage Listings</strong> on a synced set — browse its
+        full card catalog and fill in a price + quantity per card, image and
+        title included automatically. The form below is for sealed product,
+        graded slabs, and anything else outside a card catalog.
+      </p>
 
-      {imported && (
-        <div className="mt-4 rounded-lg border border-accent-yellow/40 bg-accent-yellow/10 p-3 text-sm text-accent-yellow">
-          <p>Imported {imported} product{imported === "1" ? "" : "s"} from the CSV.</p>
-          {skippedDuplicate && (
-            <p className="mt-1 text-xs">
-              Skipped {skippedDuplicate} row{skippedDuplicate === "1" ? "" : "s"} already listed.
-            </p>
-          )}
-          {skippedNoPrice && (
-            <p className="mt-1 text-xs">
-              Skipped {skippedNoPrice} row{skippedNoPrice === "1" ? "" : "s"} with no price.
-            </p>
-          )}
-          {importedWithoutSet && (
-            <p className="mt-1 text-xs">
-              Imported without a set link (no matching synced set, so no
-              auto image or set-page listing): {importedWithoutSet}. Add
-              these as sets on the Sets page for full support, or leave
-              them as-is — they still show up in the shop.
-            </p>
-          )}
-        </div>
-      )}
-      {importError && (
-        <p className="mt-4 rounded-lg border border-accent-red/40 bg-accent-red/10 p-3 text-sm text-accent-red">
-          {importError}
-        </p>
-      )}
       {backfilled && (
         <div className="mt-4 rounded-lg border border-accent-yellow/40 bg-accent-yellow/10 p-3 text-sm text-accent-yellow">
           <p>
@@ -147,34 +116,6 @@ export default async function AdminProductsPage({
           set + card number but no image yet — safe to run anytime, only
           touches listings with no image.
         </p>
-      </form>
-
-      <form
-        action={importProductsCsv}
-        encType="multipart/form-data"
-        className="mt-6 rounded-xl border border-border bg-surface p-4"
-      >
-        <label className="mb-1 block text-xs font-semibold uppercase text-muted">
-          Bulk import from CSV
-        </label>
-        <p className="mb-3 text-xs text-muted">
-          A collection-tracker export with Set, Product Name, Card Number, Rarity,
-          Variance, Grade, Card Condition, Quantity, and Market Price columns. Rows
-          are matched to a set by name and, when a synced card matches, get its
-          artwork automatically. Re-uploading skips rows already listed.
-        </p>
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <input
-            type="file"
-            name="file"
-            accept=".csv,text/csv"
-            required
-            className="flex-1 rounded-lg border border-border bg-surface-raised px-3 py-2 text-sm text-foreground file:mr-3 file:rounded-md file:border-0 file:bg-accent-yellow file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-slate-950"
-          />
-          <Button type="submit" variant="secondary">
-            Import CSV
-          </Button>
-        </div>
       </form>
 
       <form
