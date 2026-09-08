@@ -109,9 +109,9 @@ export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
   const suggestions = useCardSuggestions(query);
 
   const NAV_LINKS = [
+    { href: "/news", label: dict.nav.news, icon: Newspaper },
     { href: "/shop", label: dict.nav.shop, icon: ShoppingBag },
     { href: "/sets", label: dict.nav.sets, icon: Layers },
-    { href: "/news", label: dict.nav.news, icon: Newspaper },
   ];
 
   function handleSearch(e: FormEvent) {
