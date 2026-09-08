@@ -11,16 +11,25 @@ import { getRarityTier, type RarityTier } from "@/lib/rarity";
 // averaged ~€0.08, Normal uncommons ~€0.09, and their Reverse Holofoil
 // prints landed at ~2x that — matching the Reverse Holofoil multiplier
 // below. Double Rare (ex-Pokémon holo rares, always printed Holofoil)
-// averaged ~€0.55. ultra-rare is calibrated from a real Ultra Rare
-// (Gwynn, Pitch Black, Holofoil) trading around €7.
+// averaged ~€0.55.
+//
+// illustration-rare/ultra-rare are calibrated against PriceCharting
+// data for Pitch Black cards #85-101 (special-art numbering above the
+// base 84-card set, each only printed Holofoil): non-"ex" Pokémon
+// (Illustration Rare) averaged ~€4.47 across 11 cards, "X ex" Pokémon
+// (Ultra Rare) averaged ~€6.16 across 6 cards, in line with a real
+// Ultra Rare Trainer (Gwynn) at ~€7.12 — blended to ~€6.30. Both PDF
+// captures cut off partway through their set (44/84 and 101/~150+
+// cards respectively) before reaching secret-rare/special-illustration
+// -rare territory, so those two stay rough estimates.
 export const BASE_PRICE_CENTS: Record<RarityTier, number> = {
   common: 8,
   uncommon: 10,
   rare: 12,
   "rare-holo": 60,
   "double-rare": 20,
-  "ultra-rare": 320,
-  "illustration-rare": 350,
+  "ultra-rare": 252,
+  "illustration-rare": 180,
   "secret-rare": 600,
   "special-illustration-rare": 800,
 };
