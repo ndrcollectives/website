@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { QuickListingForm } from "@/components/admin/quick-listing-form";
 import { formatPrice } from "@/lib/utils";
+import { normalizeCardNumber } from "@/lib/card-number";
 import { deleteProduct, updateProductInventory } from "../../actions";
 
 export default async function AdminSetListingsPage({
@@ -40,12 +41,17 @@ export default async function AdminSetListingsPage({
     a.number.localeCompare(b.number, undefined, { numeric: true }),
   );
 
+  // Products imported before the catalog existed (e.g. CSV import) often
+  // stored the full padded number ("004/165") while the synced catalog
+  // stores just the printed number ("4") — normalize both sides so those
+  // existing listings still show up grouped with their card.
   const productsByCardNumber = new Map<string, NonNullable<typeof products>>();
   for (const p of products ?? []) {
     if (!p.card_number) continue;
-    const list = productsByCardNumber.get(p.card_number) ?? [];
+    const key = normalizeCardNumber(p.card_number);
+    const list = productsByCardNumber.get(key) ?? [];
     list.push(p);
-    productsByCardNumber.set(p.card_number, list);
+    productsByCardNumber.set(key, list);
   }
 
   return (
@@ -71,7 +77,7 @@ export default async function AdminSetListingsPage({
       ) : (
         <div className="mt-6 space-y-3">
           {sortedCards.map((card) => {
-            const existing = productsByCardNumber.get(card.number) ?? [];
+            const existing = productsByCardNumber.get(normalizeCardNumber(card.number)) ?? [];
             const image = card.image_small ?? card.image_large;
             return (
               <div
