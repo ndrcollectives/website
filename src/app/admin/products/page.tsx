@@ -22,13 +22,19 @@ export default async function AdminProductsPage({
   const { backfilled, noNumberMatch, unsyncedSets } = await searchParams;
   const supabase = createAdminClient();
 
-  const [{ data: products }, { data: sets }] = await Promise.all([
+  const [{ data: products }, { data: sets }, { data: cards }] = await Promise.all([
     supabase
       .from("products")
       .select("*, set:sets(name)")
       .order("created_at", { ascending: false }),
-    supabase.from("sets").select("id, name").order("name"),
+    supabase.from("sets").select("id, name, era").order("name"),
+    supabase.from("cards").select("set_id"),
   ]);
+
+  const cardCountBySetId = new Map<string, number>();
+  for (const c of cards ?? []) {
+    cardCountBySetId.set(c.set_id, (cardCountBySetId.get(c.set_id) ?? 0) + 1);
+  }
 
   type ProductRow = {
     id: string;
@@ -73,16 +79,40 @@ export default async function AdminProductsPage({
   return (
     <div>
       <h1 className="text-2xl font-bold">Product Manager</h1>
-      <p className="mt-2 text-sm text-muted">
-        To list singles from a set you have in stock, go to{" "}
-        <Link href="/admin/sets" className="text-accent-blue hover:underline">
-          Set Manager
-        </Link>{" "}
-        and click <strong>Manage Listings</strong> on a synced set — browse its
-        full card catalog and fill in a price + quantity per card, image and
-        title included automatically. The form below is for sealed product,
-        graded slabs, and anything else outside a card catalog.
-      </p>
+
+      <section className="mt-6 rounded-xl border border-border bg-surface p-4">
+        <h2 className="font-semibold">List Singles from a Set</h2>
+        <p className="mt-1 text-xs text-muted">
+          Pick a set below to browse its full card catalog and fill in a
+          price + quantity per card you have — image and title come from the
+          synced card straight away, no separate image fixing needed. Sets
+          with no card count yet need syncing first on{" "}
+          <Link href="/admin/sets" className="text-accent-blue hover:underline">
+            Set Manager
+          </Link>
+          .
+        </p>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {sets?.map((s) => {
+            const cardCount = cardCountBySetId.get(s.id) ?? 0;
+            return (
+              <Link
+                key={s.id}
+                href={`/admin/products/by-set/${s.id}`}
+                className="flex items-center justify-between rounded-lg border border-border bg-surface-raised px-3 py-2 text-sm hover:border-accent-yellow/50"
+              >
+                <span>
+                  <span className="font-medium">{s.name}</span>{" "}
+                  <span className="text-muted">&middot; {s.era}</span>
+                </span>
+                <span className={cardCount === 0 ? "text-accent-red" : "text-muted"}>
+                  {cardCount === 0 ? "not synced" : `${cardCount} cards`}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
 
       {backfilled && (
         <div className="mt-4 rounded-lg border border-accent-yellow/40 bg-accent-yellow/10 p-3 text-sm text-accent-yellow">
