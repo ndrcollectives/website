@@ -26,7 +26,7 @@ const en: Record<"terms" | "privacy" | "returns" | "shipping", LegalDoc> = {
       {
         heading: "Who we are",
         body: [
-          "NDR Collectives, operating ndrcollectives.com. Chamber of Commerce (KVK) and VAT (BTW) numbers: [to be added once registered]. Contact: support@ndrcollectives.com.",
+          "NDR Collectives, operating ndrcollectives.com. Chamber of Commerce (KVK) and VAT (BTW) registration is in progress; the registration number will be added here once it's complete. Contact: support@ndrcollectives.com.",
         ],
       },
       {
@@ -210,7 +210,7 @@ const nl: Record<"terms" | "privacy" | "returns" | "shipping", LegalDoc> = {
       {
         heading: "Wie wij zijn",
         body: [
-          "NDR Collectives, handelend onder ndrcollectives.com. KVK- en btw-nummer: [toe te voegen zodra geregistreerd]. Contact: support@ndrcollectives.com.",
+          "NDR Collectives, handelend onder ndrcollectives.com. KVK- en btw-registratie volgt binnenkort; het KVK-nummer wordt hier toegevoegd zodra de inschrijving is afgerond. Contact: support@ndrcollectives.com.",
         ],
       },
       {
