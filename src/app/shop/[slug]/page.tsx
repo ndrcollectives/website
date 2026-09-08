@@ -64,7 +64,7 @@ export default async function ProductDetailPage({ params }: Props) {
               "@type": "ListItem",
               position: 2,
               name: product.set.name,
-              item: `/sets/${product.set.code}`,
+              item: `/shop?set=${product.set.id}`,
             },
           ]
         : []),
@@ -90,7 +90,7 @@ export default async function ProductDetailPage({ params }: Props) {
         {product.set && (
           <>
             /{" "}
-            <Link href={`/sets/${product.set.code}`} className="hover:text-accent-yellow">
+            <Link href={`/shop?set=${product.set.id}`} className="hover:text-accent-yellow">
               {product.set.name}
             </Link>{" "}
           </>
