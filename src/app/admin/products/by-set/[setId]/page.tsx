@@ -3,12 +3,10 @@ import Image from "next/image";
 import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { QuickListingForm } from "@/components/admin/quick-listing-form";
 import { formatPrice } from "@/lib/utils";
-import { createProductFromCard, deleteProduct, updateProductInventory } from "../../actions";
-
-const VARIANTS = ["Normal", "Reverse Holofoil", "Holofoil", "1st Edition"];
+import { deleteProduct, updateProductInventory } from "../../actions";
 
 export default async function AdminSetListingsPage({
   params,
@@ -131,38 +129,13 @@ export default async function AdminSetListingsPage({
                     </div>
                   )}
 
-                  <form action={createProductFromCard} className="flex flex-wrap items-end gap-2">
-                    <input type="hidden" name="set_id" value={set.id} />
-                    <input type="hidden" name="card_number" value={card.number} />
-                    <input type="hidden" name="card_name" value={card.name} />
-                    <input type="hidden" name="rarity" value={card.rarity ?? ""} />
-                    <input type="hidden" name="image" value={image ?? ""} />
-                    <Select name="variant" defaultValue="Normal" className="h-9 w-40">
-                      {VARIANTS.map((v) => (
-                        <option key={v} value={v}>
-                          {v}
-                        </option>
-                      ))}
-                    </Select>
-                    <Input
-                      name="price"
-                      type="number"
-                      step="0.01"
-                      placeholder="Price (€)"
-                      required
-                      className="h-9 w-24"
-                    />
-                    <Input
-                      name="quantity"
-                      type="number"
-                      placeholder="Qty"
-                      required
-                      className="h-9 w-20"
-                    />
-                    <Button size="sm" type="submit">
-                      Add Listing
-                    </Button>
-                  </form>
+                  <QuickListingForm
+                    setId={set.id}
+                    cardNumber={card.number}
+                    cardName={card.name}
+                    rarity={card.rarity}
+                    image={image}
+                  />
                 </div>
               </div>
             );
