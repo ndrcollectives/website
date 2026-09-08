@@ -32,8 +32,11 @@ const en = {
     exploreHeading: "Explore",
     releaseCalendar: "Release Calendar",
     newsSpoilers: "News & Spoilers",
+    accountHeading: "Your Account",
     trackOrder: "Track Order",
+    helpHeading: "Help & Support",
     faq: "FAQ",
+    contactUs: "Contact Us",
     disclaimer:
       "Not affiliated with The Pokémon Company, Nintendo, Creatures, or Game Freak.",
   },
@@ -188,8 +191,11 @@ const nl: Dictionary = {
     exploreHeading: "Ontdekken",
     releaseCalendar: "Releasekalender",
     newsSpoilers: "Nieuws & Spoilers",
+    accountHeading: "Jouw Account",
     trackOrder: "Bestelling volgen",
+    helpHeading: "Help & Support",
     faq: "Veelgestelde vragen",
+    contactUs: "Neem contact op",
     disclaimer:
       "Niet verbonden met The Pokémon Company, Nintendo, Creatures of Game Freak.",
   },
