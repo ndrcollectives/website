@@ -38,7 +38,7 @@ const en: Record<"terms" | "privacy" | "returns" | "shipping", LegalDoc> = {
       {
         heading: "Prices and payment",
         body: [
-          "All prices are shown in EUR and include the fees itemized at checkout (subtotal, transaction fee, shipping). Payment is processed by Stripe; we never see or store your full card details. Prices can change at any time but never after you've placed an order.",
+          "All prices are shown in EUR and include the fees itemized at checkout (subtotal, transaction fee, shipping). Payment is processed by PayPal; we never see or store your full card details. Prices can change at any time but never after you've placed an order.",
         ],
       },
       {
@@ -75,7 +75,7 @@ const en: Record<"terms" | "privacy" | "returns" | "shipping", LegalDoc> = {
   },
   privacy: {
     title: "Privacy Policy",
-    lastUpdated: "Draft — pending legal review",
+    lastUpdated: "Last updated: September 8, 2026",
     intro:
       "This explains what personal data NDR Collectives collects when you use ndrcollectives.com, why, and what rights you have over it under GDPR.",
     sections: [
@@ -88,7 +88,7 @@ const en: Record<"terms" | "privacy" | "returns" | "shipping", LegalDoc> = {
       {
         heading: "What we collect",
         body: [
-          "Account data: email address, and name if you provide one. Order data: items purchased, shipping address, order history. Site usage: favorites, language preference, and cookie-consent choices (see Cookie Policy). We never collect or store your full card payment details — Stripe handles that directly.",
+          "Account data: email address, and name if you provide one. Order data: items purchased, shipping address, order history. Site usage: favorites, language preference, and cookie-consent choices (see Cookie Policy). We never collect or store your full card payment details — PayPal handles that directly.",
         ],
       },
       {
@@ -100,7 +100,7 @@ const en: Record<"terms" | "privacy" | "returns" | "shipping", LegalDoc> = {
       {
         heading: "Who we share it with",
         body: [
-          "Stripe (payment processing), Supabase (database/authentication hosting), and Vercel (website hosting) each process data on our behalf as needed to run the site. We don't sell your data to anyone.",
+          "PayPal (payment processing), Supabase (database/authentication hosting), and Vercel (website hosting) each process data on our behalf as needed to run the site. We don't sell your data to anyone.",
         ],
       },
       {
@@ -156,7 +156,7 @@ const en: Record<"terms" | "privacy" | "returns" | "shipping", LegalDoc> = {
       {
         heading: "Refunds",
         body: [
-          "Once we receive and check the returned item, we refund the original payment method (via Stripe) within 14 days. Shipping costs from the original order are refunded too, except the return shipping cost noted above.",
+          "Once we receive and check the returned item, we refund the original payment method (via PayPal) within 14 days. Shipping costs from the original order are refunded too, except the return shipping cost noted above.",
         ],
       },
     ],
@@ -222,7 +222,7 @@ const nl: Record<"terms" | "privacy" | "returns" | "shipping", LegalDoc> = {
       {
         heading: "Prijzen en betaling",
         body: [
-          "Alle prijzen staan in euro's en zijn inclusief de kosten die bij het afrekenen apart getoond worden (subtotaal, transactiekosten, verzendkosten). Betalingen verlopen via Stripe; wij zien of bewaren nooit je volledige kaartgegevens. Prijzen kunnen wijzigen, maar nooit meer nadat je een bestelling hebt geplaatst.",
+          "Alle prijzen staan in euro's en zijn inclusief de kosten die bij het afrekenen apart getoond worden (subtotaal, transactiekosten, verzendkosten). Betalingen verlopen via PayPal; wij zien of bewaren nooit je volledige kaartgegevens. Prijzen kunnen wijzigen, maar nooit meer nadat je een bestelling hebt geplaatst.",
         ],
       },
       {
@@ -259,7 +259,7 @@ const nl: Record<"terms" | "privacy" | "returns" | "shipping", LegalDoc> = {
   },
   privacy: {
     title: "Privacybeleid",
-    lastUpdated: "Concept — nog te laten toetsen door een jurist",
+    lastUpdated: "Laatst bijgewerkt: 8 september 2026",
     intro:
       "Dit legt uit welke persoonsgegevens NDR Collectives verzamelt via ndrcollectives.com, waarom, en welke rechten je hebt onder de AVG.",
     sections: [
@@ -272,7 +272,7 @@ const nl: Record<"terms" | "privacy" | "returns" | "shipping", LegalDoc> = {
       {
         heading: "Wat we verzamelen",
         body: [
-          "Accountgegevens: e-mailadres en naam indien opgegeven. Bestelgegevens: gekochte artikelen, verzendadres, bestelgeschiedenis. Sitegebruik: favorieten, taalvoorkeur en cookievoorkeuren (zie Cookiebeleid). We verzamelen of bewaren nooit je volledige betaalkaartgegevens — dat verloopt rechtstreeks via Stripe.",
+          "Accountgegevens: e-mailadres en naam indien opgegeven. Bestelgegevens: gekochte artikelen, verzendadres, bestelgeschiedenis. Sitegebruik: favorieten, taalvoorkeur en cookievoorkeuren (zie Cookiebeleid). We verzamelen of bewaren nooit je volledige betaalkaartgegevens — dat verloopt rechtstreeks via PayPal.",
         ],
       },
       {
@@ -284,7 +284,7 @@ const nl: Record<"terms" | "privacy" | "returns" | "shipping", LegalDoc> = {
       {
         heading: "Met wie we het delen",
         body: [
-          "Stripe (betalingsverwerking), Supabase (database-/authenticatiehosting) en Vercel (websitehosting) verwerken gegevens namens ons, voor zover nodig om de site te laten draaien. We verkopen je gegevens aan niemand.",
+          "PayPal (betalingsverwerking), Supabase (database-/authenticatiehosting) en Vercel (websitehosting) verwerken gegevens namens ons, voor zover nodig om de site te laten draaien. We verkopen je gegevens aan niemand.",
         ],
       },
       {
@@ -340,7 +340,7 @@ const nl: Record<"terms" | "privacy" | "returns" | "shipping", LegalDoc> = {
       {
         heading: "Terugbetaling",
         body: [
-          "Zodra we het geretourneerde artikel hebben ontvangen en gecontroleerd, betalen we binnen 14 dagen terug via de oorspronkelijke betaalmethode (via Stripe). De verzendkosten van de oorspronkelijke bestelling worden ook terugbetaald, met uitzondering van de retourverzendkosten hierboven.",
+          "Zodra we het geretourneerde artikel hebben ontvangen en gecontroleerd, betalen we binnen 14 dagen terug via de oorspronkelijke betaalmethode (via PayPal). De verzendkosten van de oorspronkelijke bestelling worden ook terugbetaald, met uitzondering van de retourverzendkosten hierboven.",
         ],
       },
     ],

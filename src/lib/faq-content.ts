@@ -9,7 +9,7 @@ const en: FaqItem[] = [
   {
     question: "Is it safe to buy Pokémon cards from NDR Collectives?",
     answer:
-      "Yes. Checkout is handled entirely by Stripe, a PCI-compliant payment processor used by millions of stores — we never see or store your card details. Every listing shows the exact condition and set/number before you buy.",
+      "Yes. Checkout is handled entirely by PayPal, a payment processor used by millions of stores — we never see or store your card details. Every listing shows the exact condition and set/number before you buy.",
   },
   {
     question: "What currency do I pay in?",
@@ -50,7 +50,7 @@ const nl: FaqItem[] = [
   {
     question: "Is het veilig om Pokémon kaarten te kopen bij NDR Collectives?",
     answer:
-      "Ja. Het afrekenen verloopt volledig via Stripe, een PCI-compliant betaalverwerker die door miljoenen webshops wordt gebruikt — wij zien of bewaren je kaartgegevens nooit. Elke listing toont de exacte conditie en set/nummer voordat je koopt.",
+      "Ja. Het afrekenen verloopt volledig via PayPal, een betaalverwerker die door miljoenen webshops wordt gebruikt — wij zien of bewaren je kaartgegevens nooit. Elke listing toont de exacte conditie en set/nummer voordat je koopt.",
   },
   {
     question: "In welke valuta betaal ik?",
