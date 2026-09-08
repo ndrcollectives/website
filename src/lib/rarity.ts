@@ -8,6 +8,7 @@ export type RarityTier =
   | "uncommon"
   | "rare"
   | "rare-holo"
+  | "double-rare"
   | "ultra-rare"
   | "illustration-rare"
   | "special-illustration-rare"
@@ -15,11 +16,15 @@ export type RarityTier =
 
 // Checked in order — most specific/rarest pattern first, since e.g.
 // "Special Illustration Rare" would otherwise also match plain "rare".
+// "Double Rare" (ex-Pokémon holo rares) is split out from "Ultra Rare"
+// (full-art trainers/Pokémon, ACE SPEC) since real market data shows
+// they trade in very different price bands (~€0.50 vs. ~€7+).
 const TIER_PATTERNS: [RarityTier, RegExp][] = [
   ["secret-rare", /secret|rainbow|hyper|gold|shiny/i],
   ["special-illustration-rare", /special illustration/i],
   ["illustration-rare", /illustration/i],
-  ["ultra-rare", /ultra|double rare|ace spec/i],
+  ["ultra-rare", /ultra|ace spec/i],
+  ["double-rare", /double rare/i],
   ["rare-holo", /holo/i],
   ["rare", /rare/i],
   ["uncommon", /uncommon/i],
@@ -38,6 +43,7 @@ const TIER_CLASSES: Record<RarityTier, string> = {
   uncommon: "border border-transparent bg-emerald-500/15 text-emerald-400",
   rare: "border border-transparent bg-accent-blue/15 text-accent-blue",
   "rare-holo": "border border-transparent bg-cyan-500/15 text-cyan-300",
+  "double-rare": "border border-transparent bg-violet-500/15 text-violet-300",
   "ultra-rare": "border border-transparent bg-accent-purple/15 text-accent-purple",
   "illustration-rare": "border border-transparent bg-pink-500/15 text-pink-400",
   "special-illustration-rare":
