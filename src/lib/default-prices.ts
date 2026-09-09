@@ -13,18 +13,26 @@ import { getRarityTier, type RarityTier } from "@/lib/rarity";
 // below. Double Rare (ex-Pokémon holo rares, always printed Holofoil)
 // averaged ~€0.55.
 //
-// Cross-checked against two further independent sets (Collectr-
+// Cross-checked against three further independent sets (Collectr-
 // sourced): Shrouded Fable (Normal commons ~€0.11 n=7, excluding the
 // set's alt-art basic-energy inserts as outliers — those alone
-// averaged ~€0.39; Normal uncommons ~€0.15 n=3) and Perfect Order
-// (Normal commons ~€0.07 n=10; Normal uncommons ~€0.09 n=3), all
-// matching the same ~2x Reverse Holofoil ratio. Blending all three
-// sets' commons/uncommons lands common at ~€0.08 and uncommon at
-// ~€0.10 (unchanged). Rare blended down to ~€0.10 base using Tapu
-// Bulu (Pitch Black) and Serperior (Perfect Order). Double Rare is
-// now the best-confirmed tier: Pitch Black (~€0.55, n=6) and Perfect
-// Order (~€0.54, n=2, Decidueye ex / Salazzle ex) agree closely,
-// landing its base at €0.22 (Holofoil suggestion ~€0.55).
+// averaged ~€0.39; Normal uncommons ~€0.15 n=3), Perfect Order
+// (Normal commons ~€0.07 n=10; Normal uncommons ~€0.09 n=3), and
+// Ascended Heroes (Normal commons ~€0.14 n=6; Normal uncommons
+// ~€0.16 n=3) — all matching the same ~2x Reverse Holofoil ratio.
+// Blending all four sets' commons/uncommons lands common at ~€0.09
+// and uncommon at ~€0.11 (both close to unchanged). Rare blended to
+// ~€0.10 base across all four sets' Holofoil/Reverse Holofoil data.
+//
+// Double Rare is the one tier where the sets genuinely disagree, not
+// just noisy-sample disagree: Pitch Black (~€0.55, n=6) and Perfect
+// Order (~€0.54, n=2) agree closely, but Ascended Heroes' two Double
+// Rares (Erika's Vileplume ex, Mega Meganium ex) both landed near
+// €1 — a real ~2x premium, plausibly because it's a much newer/
+// lower-supply set (Jan 2026 release) rather than measurement noise,
+// since both its data points agree with each other. Blending all
+// three sets brings the base up to €0.26 (Holofoil suggestion
+// ~€0.64) — still just a starting point per card/set.
 //
 // rare-holo (the pre-Scarlet & Violet label for a guaranteed-holo rare,
 // used in older-block sets) has no real data behind it — it's treated
@@ -49,11 +57,11 @@ import { getRarityTier, type RarityTier } from "@/lib/rarity";
 //   €25-€199 — by far the widest spread of any tier, so this one is
 //   the roughest of the "real data" estimates.
 export const BASE_PRICE_CENTS: Record<RarityTier, number> = {
-  common: 8,
-  uncommon: 10,
+  common: 9,
+  uncommon: 11,
   rare: 10,
-  "rare-holo": 22,
-  "double-rare": 22,
+  "rare-holo": 26,
+  "double-rare": 26,
   "ultra-rare": 252,
   "illustration-rare": 180,
   "special-illustration-rare": 195,
