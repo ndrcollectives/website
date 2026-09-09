@@ -145,7 +145,13 @@ export type ShopFilters = {
   minPrice?: number;
   maxPrice?: number;
   search?: string;
-  sort?: "price_asc" | "price_desc" | "newest" | "card_number" | "rarity";
+  sort?:
+    | "price_asc"
+    | "price_desc"
+    | "newest"
+    | "card_number"
+    | "rarity_asc"
+    | "rarity_desc";
 };
 
 export async function getProducts(filters: ShopFilters = {}): Promise<Product[]> {
@@ -175,7 +181,8 @@ export async function getProducts(filters: ShopFilters = {}): Promise<Product[]>
         query = query.order("price_cents", { ascending: false });
         break;
       case "card_number":
-      case "rarity":
+      case "rarity_asc":
+      case "rarity_desc":
         break;
       default:
         query = query.order("created_at", { ascending: false });
@@ -196,9 +203,11 @@ export async function getProducts(filters: ShopFilters = {}): Promise<Product[]>
 
     // Rarity isn't a fixed enum in the DB (free text like "Rare Holo",
     // "Double Rare"), so sort by the same tier bucketing used everywhere
-    // else in the UI (rarity badges, default pricing) — common to rarest.
-    if (filters.sort === "rarity") {
+    // else in the UI (rarity badges, default pricing).
+    if (filters.sort === "rarity_asc") {
       products.sort((a, b) => getRarityRank(a.rarity) - getRarityRank(b.rarity));
+    } else if (filters.sort === "rarity_desc") {
+      products.sort((a, b) => getRarityRank(b.rarity) - getRarityRank(a.rarity));
     }
 
     return products;
@@ -278,11 +287,12 @@ export async function getShopEntries(filters: ShopFilters = {}): Promise<ShopEnt
       });
     }
 
-    if (filters.sort === "rarity") {
+    if (filters.sort === "rarity_asc" || filters.sort === "rarity_desc") {
+      const direction = filters.sort === "rarity_asc" ? 1 : -1;
       entries.sort((a, b) => {
         const rarityA = a.kind === "product" ? a.product.rarity : a.card.rarity;
         const rarityB = b.kind === "product" ? b.product.rarity : b.card.rarity;
-        return getRarityRank(rarityA) - getRarityRank(rarityB);
+        return (getRarityRank(rarityA) - getRarityRank(rarityB)) * direction;
       });
     }
 
