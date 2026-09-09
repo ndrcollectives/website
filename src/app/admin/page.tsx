@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/auth";
+import { fetchAllRows } from "@/lib/supabase/paginate";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatPrice } from "@/lib/utils";
 
@@ -7,18 +8,33 @@ export default async function AdminOverviewPage() {
   await requireAdmin();
   const supabase = createAdminClient();
 
-  const [{ count: productCount }, { count: setCount }, { count: articleCount }, { data: orders }] =
-    await Promise.all([
-      supabase.from("products").select("*", { count: "exact", head: true }),
-      supabase.from("sets").select("*", { count: "exact", head: true }),
-      supabase.from("news_articles").select("*", { count: "exact", head: true }),
-      supabase.from("orders").select("total_amount_cents, status"),
-    ]);
+  const [
+    { count: productCount },
+    { count: setCount },
+    { count: articleCount },
+    { data: orders },
+    inventoryRows,
+  ] = await Promise.all([
+    supabase.from("products").select("*", { count: "exact", head: true }),
+    supabase.from("sets").select("*", { count: "exact", head: true }),
+    supabase.from("news_articles").select("*", { count: "exact", head: true }),
+    supabase.from("orders").select("total_amount_cents, status"),
+    fetchAllRows<{ price_cents: number; inventory_count: number }>((from, to) =>
+      supabase.from("products").select("price_cents, inventory_count").range(from, to),
+    ),
+  ]);
 
   const revenue =
     orders
       ?.filter((o) => o.status === "paid" || o.status === "shipped")
       .reduce((sum, o) => sum + o.total_amount_cents, 0) ?? 0;
+
+  // Total retail value of current stock (price x quantity on hand) — not
+  // revenue, which is money already collected from paid/shipped orders.
+  const shopValue = inventoryRows.reduce(
+    (sum, p) => sum + p.price_cents * p.inventory_count,
+    0,
+  );
 
   const stats = [
     { label: "Products", value: productCount ?? 0 },
@@ -49,6 +65,16 @@ export default async function AdminOverviewPage() {
           </CardHeader>
           <CardContent className="text-2xl font-bold text-accent-yellow">
             {formatPrice(revenue)}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-normal text-muted">
+              Total Shop Value
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="text-2xl font-bold text-accent-yellow">
+            {formatPrice(shopValue)}
           </CardContent>
         </Card>
       </div>
