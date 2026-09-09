@@ -8,6 +8,29 @@ import type { Card, FavoriteEntry, NewsArticle, Product, Set, ShopEntry } from "
 // just because Supabase isn't configured yet or a query fails — they
 // degrade to empty results instead, and the pages already render sensible
 // empty states for that case.
+// PostgREST's .or() filter string treats "," and ")" as syntax — wrap each
+// value in double quotes (escaping embedded quotes) so a search term
+// containing them can't break the filter.
+function orValue(value: string): string {
+  return `"${value.replace(/"/g, '\\"')}"`;
+}
+
+// Card numbers are entered/stored in different shapes depending on how a
+// listing was created — the synced catalog's bare printed number ("11")
+// vs. an older CSV import's padded "011/217" — so a search for either
+// shape needs to match both. See normalizeCardNumber for the same
+// mismatch handled elsewhere (merging listings with the synced catalog).
+function searchOrFilter(columns: string[], search: string): string {
+  const terms = new Set([search, normalizeCardNumber(search)]);
+  const clauses: string[] = [];
+  for (const column of columns) {
+    for (const term of terms) {
+      clauses.push(`${column}.ilike.${orValue(`%${term}%`)}`);
+    }
+  }
+  return clauses.join(",");
+}
+
 async function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
   try {
     return await fn();
@@ -171,7 +194,9 @@ export async function getProducts(filters: ShopFilters = {}): Promise<Product[]>
     if (filters.condition) query = query.eq("condition", filters.condition);
     if (filters.minPrice != null) query = query.gte("price_cents", filters.minPrice);
     if (filters.maxPrice != null) query = query.lte("price_cents", filters.maxPrice);
-    if (filters.search) query = query.ilike("title", `%${filters.search}%`);
+    if (filters.search) {
+      query = query.or(searchOrFilter(["title", "card_number"], filters.search));
+    }
 
     switch (filters.sort) {
       case "price_asc":
@@ -258,7 +283,9 @@ export async function getShopEntries(filters: ShopFilters = {}): Promise<ShopEnt
 
     if (filters.setId) cardQuery = cardQuery.eq("set_id", filters.setId);
     if (filters.rarity) cardQuery = cardQuery.eq("rarity", filters.rarity);
-    if (filters.search) cardQuery = cardQuery.ilike("name", `%${filters.search}%`);
+    if (filters.search) {
+      cardQuery = cardQuery.or(searchOrFilter(["name", "number"], filters.search));
+    }
 
     const { data } = await cardQuery;
     const cards = (data as (Card & { set: Set | null })[]) ?? [];
