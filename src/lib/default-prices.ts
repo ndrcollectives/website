@@ -13,26 +13,33 @@ import { getRarityTier, type RarityTier } from "@/lib/rarity";
 // below. Double Rare (ex-Pokémon holo rares, always printed Holofoil)
 // averaged ~€0.55.
 //
-// Cross-checked against three further independent sets (Collectr-
+// Cross-checked against four further independent sets (Collectr-
 // sourced): Shrouded Fable (Normal commons ~€0.11 n=7, excluding the
 // set's alt-art basic-energy inserts as outliers — those alone
 // averaged ~€0.39; Normal uncommons ~€0.15 n=3), Perfect Order
-// (Normal commons ~€0.07 n=10; Normal uncommons ~€0.09 n=3), and
-// Ascended Heroes (Normal commons ~€0.14 n=6; Normal uncommons
-// ~€0.16 n=3) — all matching the same ~2x Reverse Holofoil ratio.
-// Blending all four sets' commons/uncommons lands common at ~€0.09
-// and uncommon at ~€0.11 (both close to unchanged). Rare blended to
-// ~€0.10 base across all four sets' Holofoil/Reverse Holofoil data.
+// (Normal commons ~€0.07 n=10; Normal uncommons ~€0.09 n=3), Ascended
+// Heroes (Normal commons ~€0.14 n=6; Normal uncommons ~€0.16 n=3),
+// and Chaos Rising (Normal commons ~€0.12 n=10; Normal uncommons
+// ~€0.14 n=1) — all matching the same ~2x Reverse Holofoil ratio.
+// Blending all five sets' commons/uncommons lands common at ~€0.10
+// and uncommon at ~€0.11 (both close to unchanged and stabilizing).
+// Rare blended to ~€0.10 base across all five sets' Holofoil/Reverse
+// Holofoil data.
 //
 // Double Rare is the one tier where the sets genuinely disagree, not
 // just noisy-sample disagree: Pitch Black (~€0.55, n=6) and Perfect
-// Order (~€0.54, n=2) agree closely, but Ascended Heroes' two Double
+// Order (~€0.54, n=2) agree closely; Ascended Heroes' two Double
 // Rares (Erika's Vileplume ex, Mega Meganium ex) both landed near
-// €1 — a real ~2x premium, plausibly because it's a much newer/
-// lower-supply set (Jan 2026 release) rather than measurement noise,
-// since both its data points agree with each other. Blending all
-// three sets brings the base up to €0.26 (Holofoil suggestion
-// ~€0.64) — still just a starting point per card/set.
+// €1 — a real ~2x premium, plausibly reflecting its release date
+// rather than measurement noise, since both its data points agree
+// with each other; Chaos Rising's two Double Rares (Beedrill ex,
+// Mega Pyroar ex) landed in between at ~€0.72. Release recency alone
+// doesn't explain it either — Chaos Rising released even more
+// recently than Ascended Heroes (May vs. Jan 2026) yet priced lower,
+// so character/set demand plays a role too. Blending all four sets
+// brings the base to €0.26 (Holofoil suggestion ~€0.65) — still just
+// a starting point per card/set, more so for this tier than any
+// other.
 //
 // rare-holo (the pre-Scarlet & Violet label for a guaranteed-holo rare,
 // used in older-block sets) has no real data behind it — it's treated
@@ -57,7 +64,7 @@ import { getRarityTier, type RarityTier } from "@/lib/rarity";
 //   €25-€199 — by far the widest spread of any tier, so this one is
 //   the roughest of the "real data" estimates.
 export const BASE_PRICE_CENTS: Record<RarityTier, number> = {
-  common: 9,
+  common: 10,
   uncommon: 11,
   rare: 10,
   "rare-holo": 26,
