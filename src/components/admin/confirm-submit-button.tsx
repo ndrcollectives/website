@@ -9,12 +9,14 @@ export function ConfirmSubmitForm({
   variant,
   children,
   className,
+  hidden,
 }: {
-  action: () => void | Promise<void>;
+  action: (formData: FormData) => void | Promise<void>;
   confirmMessage: string;
   variant?: "default" | "secondary" | "destructive";
   children: ReactNode;
   className?: string;
+  hidden?: Record<string, string>;
 }) {
   return (
     <form
@@ -24,6 +26,10 @@ export function ConfirmSubmitForm({
         if (!confirm(confirmMessage)) e.preventDefault();
       }}
     >
+      {hidden &&
+        Object.entries(hidden).map(([name, value]) => (
+          <input key={name} type="hidden" name={name} value={value} />
+        ))}
       <Button type="submit" variant={variant}>
         {children}
       </Button>

@@ -240,22 +240,23 @@ function variantFromTitle(title: string): string {
 // rarities (Illustration Rare and up) are deliberately left untouched:
 // that data is far rougher and a flat price is much more likely to be
 // wrong for a specific valuable card.
-export async function resetBulkTierPrices() {
-  await requireAdmin();
-  const supabase = createAdminClient();
-
+async function repriceBulkTierProducts(
+  supabase: ReturnType<typeof createAdminClient>,
+  setId?: string,
+) {
   const candidates = await fetchAllRows<{
     id: string;
     title: string;
     rarity: string | null;
     price_cents: number;
-  }>((from, to) =>
-    supabase
+  }>((from, to) => {
+    let query = supabase
       .from("products")
       .select("id, title, rarity, price_cents")
-      .eq("product_type", "single")
-      .range(from, to),
-  );
+      .eq("product_type", "single");
+    if (setId) query = query.eq("set_id", setId);
+    return query.range(from, to);
+  });
 
   const targets = candidates.filter((p) => BULK_TIERS.has(getRarityTier(p.rarity)));
 
@@ -279,9 +280,35 @@ export async function resetBulkTierPrices() {
     updated += results.filter((r) => !r.error).length;
   }
 
+  return { updated, scanned: targets.length };
+}
+
+export async function resetBulkTierPrices() {
+  await requireAdmin();
+  const supabase = createAdminClient();
+
+  const { updated, scanned } = await repriceBulkTierProducts(supabase);
+
   revalidatePath("/admin/products");
   revalidatePath("/shop");
-  redirect(`/admin/products?repriced=${updated}&repriceScanned=${targets.length}`);
+  redirect(`/admin/products?repriced=${updated}&repriceScanned=${scanned}`);
+}
+
+// Same reprice as resetBulkTierPrices, scoped to one set — for syncing an
+// already-listed set (e.g. one added via old CSV import) to the current
+// default price table without touching every other set's listings.
+export async function resetBulkTierPricesForSet(formData: FormData) {
+  await requireAdmin();
+  const supabase = createAdminClient();
+  const setId = String(formData.get("set_id") ?? "");
+  if (!setId) return;
+
+  const { updated, scanned } = await repriceBulkTierProducts(supabase, setId);
+
+  revalidatePath("/admin/products");
+  revalidatePath(`/admin/products/by-set/${setId}`);
+  revalidatePath("/shop");
+  redirect(`/admin/products/by-set/${setId}?repriced=${updated}&repriceScanned=${scanned}`);
 }
 
 export async function deleteProduct(formData: FormData) {

@@ -5,17 +5,30 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { QuickListingForm } from "@/components/admin/quick-listing-form";
+import { ConfirmSubmitForm } from "@/components/admin/confirm-submit-button";
 import { formatPrice } from "@/lib/utils";
 import { normalizeCardNumber } from "@/lib/card-number";
-import { deleteProduct, updateProductInventory } from "../../actions";
+import {
+  deleteProduct,
+  resetBulkTierPricesForSet,
+  updateProductInventory,
+} from "../../actions";
+
+type SearchParams = {
+  repriced?: string;
+  repriceScanned?: string;
+};
 
 export default async function AdminSetListingsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ setId: string }>;
+  searchParams: Promise<SearchParams>;
 }) {
   await requireAdmin();
   const { setId } = await params;
+  const { repriced, repriceScanned } = await searchParams;
   const supabase = createAdminClient();
 
   const [{ data: set }, { data: cards }, { data: products }] = await Promise.all([
@@ -65,6 +78,25 @@ export default async function AdminSetListingsPage({
         fill in a price and how many you have, and add — title and image come
         straight from the synced catalog.
       </p>
+
+      {repriced !== undefined && (
+        <div className="mt-4 rounded-lg border border-accent-yellow/40 bg-accent-yellow/10 p-3 text-sm text-accent-yellow">
+          {repriced === "0"
+            ? `Checked ${repriceScanned ?? 0} bulk-tier listing${repriceScanned === "1" ? "" : "s"} in ${set.name} — all already matched the default price table.`
+            : `Repriced ${repriced} of ${repriceScanned ?? 0} bulk-tier listing${repriceScanned === "1" ? "" : "s"} in ${set.name} to match the current default price table.`}
+        </div>
+      )}
+
+      <div className="mt-4">
+        <ConfirmSubmitForm
+          action={resetBulkTierPricesForSet}
+          variant="secondary"
+          hidden={{ set_id: set.id }}
+          confirmMessage={`Reset the price of every Common/Uncommon/Rare/Double Rare listing in ${set.name} to the current default price table? This overwrites any price you set by hand on those listings. Illustration Rare and up are left untouched.`}
+        >
+          Sync {set.name} to Default Prices
+        </ConfirmSubmitForm>
+      </div>
 
       {sortedCards.length === 0 ? (
         <p className="mt-8 text-sm text-muted">
