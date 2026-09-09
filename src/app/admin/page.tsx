@@ -36,6 +36,13 @@ export default async function AdminOverviewPage() {
     0,
   );
 
+  // Mean listing price across every product — not weighted by quantity,
+  // so a card you have 50 of counts the same as a card you have 1 of.
+  const avgPrice =
+    inventoryRows.length > 0
+      ? inventoryRows.reduce((sum, p) => sum + p.price_cents, 0) / inventoryRows.length
+      : 0;
+
   const stats = [
     { label: "Products", value: productCount ?? 0 },
     { label: "Sets Tracked", value: setCount ?? 0 },
@@ -75,6 +82,16 @@ export default async function AdminOverviewPage() {
           </CardHeader>
           <CardContent className="text-2xl font-bold text-accent-yellow">
             {formatPrice(shopValue)}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-normal text-muted">
+              Avg Price / Card
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="text-2xl font-bold text-accent-yellow">
+            {formatPrice(Math.round(avgPrice))}
           </CardContent>
         </Card>
       </div>
