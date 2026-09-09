@@ -116,54 +116,21 @@ input[type="date"]::-webkit-date-and-time-value {
   }
 }
 
-@keyframes marquee {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    /* The track is the item list duplicated once, so -50% lines the
-       second copy up exactly where the first started — seamless loop. */
-    transform: translateX(-50%);
-  }
+/* Recent-additions ticker: JS (see RecentAdditionsTicker) drives the
+   auto-scroll by nudging scrollLeft directly, rather than a CSS
+   transform animation — that's what lets it pause the instant a finger
+   touches the strip and resume a moment after release, instead of
+   fighting (or, on touch, getting stuck by a "sticky" :hover) a manual
+   swipe. This just hides the scrollbar; the element is a normal
+   scroll container underneath, so keyboard/trackpad/touch scrolling all
+   still work regardless of the auto-scroll. */
+.marquee-viewport {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
 
-.marquee-track {
-  animation: marquee 40s linear infinite;
-}
-
-/* Scoped to real hover (mouse/trackpad) — on a touchscreen, tapping a card
-   triggers a "sticky" :hover that never clears until the user taps
-   elsewhere, which permanently paused the animation and, since the
-   viewport below is overflow-hidden, left it looking completely frozen. */
-@media (hover: hover) {
-  .marquee-track:hover {
-    animation-play-state: paused;
-  }
-}
-
-/* No real hover means no way to un-pause a paused animation, and the
-   auto-scroll fights a manual swipe anyway — on touch devices, swap the
-   marquee for a plain swipeable row instead: drop the animation and the
-   duplicated second half, and let the viewport scroll horizontally. */
-@media (hover: none) {
-  .marquee-viewport {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .marquee-track {
-    animation: none;
-  }
-
-  .marquee-track-duplicate {
-    display: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .marquee-track {
-    animation: none;
-  }
+.marquee-viewport::-webkit-scrollbar {
+  display: none;
 }
 
 .scrollbar-thin::-webkit-scrollbar {

@@ -23,7 +23,7 @@ export default async function HomePage() {
     getUpcomingSets(4),
     getFeaturedProducts(8),
     getPublishedArticles(undefined, 3, locale),
-    getRecentProducts(10),
+    getRecentProducts(24),
     getFavoriteProductIds(),
   ]);
   const dict = getDictionary(locale);
