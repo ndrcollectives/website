@@ -13,6 +13,16 @@ import { getRarityTier, type RarityTier } from "@/lib/rarity";
 // below. Double Rare (ex-Pokémon holo rares, always printed Holofoil)
 // averaged ~€0.55.
 //
+// Cross-checked against a second, independent set (Shrouded Fable,
+// Collectr-sourced): Normal commons averaged ~€0.11 (n=7, excluding
+// the set's alt-art basic-energy inserts as outliers — those alone
+// averaged ~€0.39), Normal uncommons ~€0.15 (n=3), matching the same
+// ~2x Reverse Holofoil ratio. Blending both sets' commons/uncommons
+// nudged common up slightly (€0.08→€0.09) and left uncommon
+// unchanged; blending the one Rare data point available (Tapu Bulu,
+// €0.16 Holofoil / €0.23 Reverse Holofoil) with Pitch Black's Rare
+// data brought rare's base down (€0.12→€0.10).
+//
 // rare-holo (the pre-Scarlet & Violet label for a guaranteed-holo rare,
 // used in older-block sets) has no real data behind it — it's treated
 // as the same tier as double-rare (SV-era guaranteed-holo "ex" rares)
@@ -36,9 +46,9 @@ import { getRarityTier, type RarityTier } from "@/lib/rarity";
 //   €25-€199 — by far the widest spread of any tier, so this one is
 //   the roughest of the "real data" estimates.
 export const BASE_PRICE_CENTS: Record<RarityTier, number> = {
-  common: 8,
+  common: 9,
   uncommon: 10,
-  rare: 12,
+  rare: 10,
   "rare-holo": 20,
   "double-rare": 20,
   "ultra-rare": 252,
