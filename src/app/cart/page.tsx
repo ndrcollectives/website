@@ -13,15 +13,15 @@ import { calculateTransactionFeeCents, SHIPPING_FLAT_CENTS } from "@/lib/pricing
 export default function CartPage() {
   const { items, removeItem, setQuantity, subtotalCents } = useCart();
   const { dict } = useLanguage();
-  const [loading, setLoading] = useState<"stripe" | "paypal" | null>(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const transactionFeeCents = calculateTransactionFeeCents(subtotalCents);
 
-  async function handleCheckout(provider: "stripe" | "paypal") {
-    setLoading(provider);
+  async function handleCheckout() {
+    setLoading(true);
     setError(null);
     try {
-      const res = await fetch(provider === "paypal" ? "/api/checkout/paypal" : "/api/checkout", {
+      const res = await fetch("/api/checkout/paypal", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -33,7 +33,7 @@ export default function CartPage() {
       window.location.href = data.url;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Checkout failed");
-      setLoading(null);
+      setLoading(false);
     }
   }
 
@@ -137,22 +137,8 @@ export default function CartPage() {
           </div>
           <p className="mt-1 text-xs text-muted">{dict.cart.shippingNote}</p>
           {error && <p className="mt-3 text-sm text-accent-red">{error}</p>}
-          <Button
-            size="lg"
-            className="mt-4 w-full"
-            onClick={() => handleCheckout("stripe")}
-            disabled={loading !== null}
-          >
-            {loading === "stripe" ? dict.cart.redirecting : dict.cart.checkout}
-          </Button>
-          <Button
-            size="lg"
-            variant="secondary"
-            className="mt-2 w-full"
-            onClick={() => handleCheckout("paypal")}
-            disabled={loading !== null}
-          >
-            {loading === "paypal" ? dict.cart.redirecting : dict.cart.checkoutPaypal}
+          <Button size="lg" className="mt-4 w-full" onClick={handleCheckout} disabled={loading}>
+            {loading ? dict.cart.redirecting : dict.cart.checkoutPaypal}
           </Button>
         </div>
       </div>
