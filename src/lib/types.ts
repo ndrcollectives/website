@@ -15,6 +15,9 @@ export type Set = {
   era: string;
   release_date: string;
   total_cards: number;
+  // The denominator actually printed on the cards — differs from
+  // total_cards for sets with secret rares (see pokemon-tcg.ts).
+  printed_total: number;
   logo_url: string | null;
   banner_url: string | null;
   is_upcoming: boolean;

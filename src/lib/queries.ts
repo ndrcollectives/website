@@ -27,17 +27,23 @@ function searchOrFilter(columns: string[], search: string): string {
   return clauses.join(",");
 }
 
-// A search like "018/132" names a card by its printed denominator, but
-// that's the set's *regular* card count — secret rares print beyond it
-// (e.g. Mega Evolutions cards say /132, but the set's actual total_cards
-// is 188 once its secret rares are included), so it never overshoots the
-// real total_cards, only undershoots it. Pick the candidate set whose
-// total_cards is the closest value at or above the searched denominator,
-// rather than requiring an exact match.
+// A search like "018/132" names a card by its printed denominator —
+// printed_total, not total_cards (which for sets with secret rares is
+// higher, e.g. Mega Evolution prints "/132" but has 188 cards once its
+// secret rares are counted). Prefer an exact printed_total match; only
+// fall back to the older "closest total_cards at or above" heuristic for
+// rows that predate printed_total being synced/set (still better than no
+// match at all, but can't be exact the way printed_total is).
 function pickBestSetForNumber(
-  rows: { set_id: string | null; set?: { total_cards: number } | null }[],
+  rows: {
+    set_id: string | null;
+    set?: { printed_total: number | null; total_cards: number } | null;
+  }[],
   wantedTotal: number,
 ): string | null {
+  const exact = rows.find((row) => row.set && row.set.printed_total === wantedTotal);
+  if (exact?.set_id) return exact.set_id;
+
   let best: { setId: string; diff: number } | null = null;
   for (const row of rows) {
     if (!row.set_id || !row.set || row.set.total_cards < wantedTotal) continue;

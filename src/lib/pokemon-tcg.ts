@@ -15,6 +15,7 @@ type ApiSet = {
   series: string;
   releaseDate: string; // "YYYY/MM/DD"
   total: number;
+  printedTotal: number;
   images: { symbol: string; logo: string };
 };
 
@@ -24,6 +25,11 @@ export type SyncedSet = {
   era: string;
   release_date: string; // "YYYY-MM-DD"
   total_cards: number;
+  // The denominator actually printed on the cards themselves — differs
+  // from total_cards for sets with secret rares (e.g. Mega Evolution is
+  // total=188 but printedTotal=132). Falls back to total_cards on the
+  // rare set missing this field in the source data.
+  printed_total: number;
   logo_url: string | null;
   is_upcoming: boolean;
 };
@@ -84,6 +90,7 @@ export async function fetchAllSets(): Promise<SyncedSet[]> {
       era: set.series,
       release_date: releaseDate,
       total_cards: set.total,
+      printed_total: set.printedTotal ?? set.total,
       logo_url: set.images?.logo ?? null,
       is_upcoming: new Date(releaseDate) > today,
     };

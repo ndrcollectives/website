@@ -12,12 +12,19 @@ export async function createSet(formData: FormData) {
 
   const releaseDate = String(formData.get("release_date"));
 
+  const totalCards = Number(formData.get("total_cards") ?? 0);
+  const printedTotalRaw = String(formData.get("printed_total") ?? "").trim();
+
   const { error } = await supabase.from("sets").insert({
     name: String(formData.get("name")),
     code: String(formData.get("code")),
     era: String(formData.get("era")),
     release_date: releaseDate,
-    total_cards: Number(formData.get("total_cards") ?? 0),
+    total_cards: totalCards,
+    // The number printed on the cards ("011/217") — defaults to
+    // total_cards when left blank, right for any set without secret
+    // rares beyond its regular numbering.
+    printed_total: printedTotalRaw ? Number(printedTotalRaw) : totalCards,
     logo_url: String(formData.get("logo_url") ?? "") || null,
     banner_url: String(formData.get("banner_url") ?? "") || null,
     is_upcoming: new Date(releaseDate) > new Date(),
@@ -46,6 +53,7 @@ export async function syncSetsFromApi() {
         era: s.era,
         release_date: s.release_date,
         total_cards: s.total_cards,
+        printed_total: s.printed_total,
         logo_url: s.logo_url,
         is_upcoming: s.is_upcoming,
       })),

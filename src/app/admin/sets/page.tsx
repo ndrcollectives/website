@@ -73,6 +73,11 @@ export default async function AdminSetsPage({
         <Input name="era" placeholder="Era (e.g. Scarlet & Violet)" required />
         <Input name="release_date" type="date" required />
         <Input name="total_cards" type="number" placeholder="Total cards" />
+        <Input
+          name="printed_total"
+          type="number"
+          placeholder="Printed total (number on card, blank = same as total)"
+        />
         <Input name="logo_url" placeholder="Logo URL" className="sm:col-span-2" />
         <Input name="banner_url" placeholder="Banner URL" className="sm:col-span-2" />
         <Button type="submit" className="sm:col-span-2">

@@ -24,6 +24,7 @@ export async function GET(request: Request) {
       era: s.era,
       release_date: s.release_date,
       total_cards: s.total_cards,
+      printed_total: s.printed_total,
       logo_url: s.logo_url,
       is_upcoming: s.is_upcoming,
     })),
