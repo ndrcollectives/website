@@ -28,8 +28,8 @@ export default async function AdminSetListingsPage({
     return (
       <div>
         <p className="text-sm text-accent-red">Set not found.</p>
-        <Link href="/admin/sets" className="text-sm text-accent-blue hover:underline">
-          &larr; Back to Sets
+        <Link href="/admin/products" className="text-sm text-accent-blue hover:underline">
+          &larr; Back to Products
         </Link>
       </div>
     );
@@ -56,8 +56,8 @@ export default async function AdminSetListingsPage({
 
   return (
     <div>
-      <Link href="/admin/sets" className="text-sm text-accent-blue hover:underline">
-        &larr; Back to Sets
+      <Link href="/admin/products" className="text-sm text-accent-blue hover:underline">
+        &larr; Back to Products
       </Link>
       <h1 className="mt-2 text-2xl font-bold">{set.name} — Manage Listings</h1>
       <p className="mt-1 text-sm text-muted">
