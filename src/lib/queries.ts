@@ -150,7 +150,13 @@ export type ShopFilters = {
 export async function getProducts(filters: ShopFilters = {}): Promise<Product[]> {
   return safe(async () => {
     const supabase = await createClient();
-    let query = supabase.from("products").select("*, set:sets(*)");
+    let query = supabase
+      .from("products")
+      .select("*, set:sets(*)")
+      // Sold-out singles/sealed product (not pre-orderable) are hidden
+      // from the shop entirely rather than shown with a "Sold Out"
+      // badge — mirrors the RLS policy on this table.
+      .or("inventory_count.gt.0,is_preorder.eq.true");
 
     if (filters.setId) query = query.eq("set_id", filters.setId);
     if (filters.productType) query = query.eq("product_type", filters.productType);
