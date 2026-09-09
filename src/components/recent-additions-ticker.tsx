@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { PriceTag } from "@/components/price-tag";
+import { cn } from "@/lib/utils";
 import type { Product } from "@/lib/types";
 
 // Continuous right-to-left marquee of recently added products. The track
@@ -13,13 +14,16 @@ export function RecentAdditionsTicker({ products }: { products: Product[] }) {
   const track = [...products, ...products];
 
   return (
-    <div className="overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_5%,black_95%,transparent)]">
+    <div className="marquee-viewport overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_5%,black_95%,transparent)]">
       <div className="marquee-track flex w-max gap-4">
         {track.map((product, i) => (
           <Link
             key={`${product.id}-${i}`}
             href={`/shop/${product.slug}`}
-            className="flex w-36 shrink-0 flex-col overflow-hidden rounded-xl border border-border bg-surface transition-colors hover:border-accent-yellow/50"
+            className={cn(
+              "flex w-36 shrink-0 flex-col overflow-hidden rounded-xl border border-border bg-surface transition-colors hover:border-accent-yellow/50",
+              i >= products.length && "marquee-track-duplicate",
+            )}
           >
             <div className="relative aspect-[5/7] bg-surface-raised">
               {product.images?.[0] ? (

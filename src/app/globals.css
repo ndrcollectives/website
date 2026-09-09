@@ -131,8 +131,33 @@ input[type="date"]::-webkit-date-and-time-value {
   animation: marquee 40s linear infinite;
 }
 
-.marquee-track:hover {
-  animation-play-state: paused;
+/* Scoped to real hover (mouse/trackpad) — on a touchscreen, tapping a card
+   triggers a "sticky" :hover that never clears until the user taps
+   elsewhere, which permanently paused the animation and, since the
+   viewport below is overflow-hidden, left it looking completely frozen. */
+@media (hover: hover) {
+  .marquee-track:hover {
+    animation-play-state: paused;
+  }
+}
+
+/* No real hover means no way to un-pause a paused animation, and the
+   auto-scroll fights a manual swipe anyway — on touch devices, swap the
+   marquee for a plain swipeable row instead: drop the animation and the
+   duplicated second half, and let the viewport scroll horizontally. */
+@media (hover: none) {
+  .marquee-viewport {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .marquee-track {
+    animation: none;
+  }
+
+  .marquee-track-duplicate {
+    display: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
