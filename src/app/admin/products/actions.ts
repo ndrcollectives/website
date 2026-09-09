@@ -8,6 +8,7 @@ import { fetchAllRows } from "@/lib/supabase/paginate";
 import { normalizeCardNumber } from "@/lib/card-number";
 import { getRarityTier } from "@/lib/rarity";
 import { getSuggestedPriceCents } from "@/lib/default-prices";
+import { variantFromTitle } from "@/lib/product-variant";
 
 function slugify(title: string) {
   return title
@@ -214,24 +215,6 @@ export async function backfillProductImages() {
 }
 
 const BULK_TIERS = new Set(["common", "uncommon", "rare", "rare-holo", "double-rare"]);
-
-// Non-Normal variants are folded into the title as " · <Variant>" (see
-// createProductFromCard) — there's no dedicated variant column, so that
-// suffix is the only signal for products created via the quick-listing
-// form. Older CSV-imported titles that don't follow this convention fall
-// back to the Normal-tier price, which may undercharge a holo print.
-const TITLE_VARIANT_SUFFIXES: [string, string][] = [
-  [" · 1st Edition", "1st Edition"],
-  [" · Reverse Holofoil", "Reverse Holofoil"],
-  [" · Holofoil", "Holofoil"],
-];
-
-function variantFromTitle(title: string): string {
-  for (const [suffix, variant] of TITLE_VARIANT_SUFFIXES) {
-    if (title.endsWith(suffix)) return variant;
-  }
-  return "Normal";
-}
 
 // Resets every single-card listing in the bulk tiers (common/uncommon/
 // rare/rare-holo/double-rare) to the current default-price table — an

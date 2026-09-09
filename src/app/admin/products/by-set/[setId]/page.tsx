@@ -8,6 +8,7 @@ import { QuickListingForm } from "@/components/admin/quick-listing-form";
 import { ConfirmSubmitForm } from "@/components/admin/confirm-submit-button";
 import { formatPrice } from "@/lib/utils";
 import { normalizeCardNumber } from "@/lib/card-number";
+import { VARIANT_ORDER, variantFromTitle } from "@/lib/product-variant";
 import {
   deleteProduct,
   resetBulkTierPricesForSet,
@@ -65,6 +66,17 @@ export default async function AdminSetListingsPage({
     const list = productsByCardNumber.get(key) ?? [];
     list.push(p);
     productsByCardNumber.set(key, list);
+  }
+  // Insertion order otherwise depends on which variant happened to get
+  // listed first — sort by print variant instead (Normal, then Reverse
+  // Holofoil, Holofoil, 1st Edition) so a card's listings always appear
+  // in the same order regardless of when each was added.
+  for (const list of productsByCardNumber.values()) {
+    list.sort(
+      (a, b) =>
+        VARIANT_ORDER.indexOf(variantFromTitle(a.title) as (typeof VARIANT_ORDER)[number]) -
+        VARIANT_ORDER.indexOf(variantFromTitle(b.title) as (typeof VARIANT_ORDER)[number]),
+    );
   }
 
   return (
