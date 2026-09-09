@@ -27,6 +27,26 @@ function searchOrFilter(columns: string[], search: string): string {
   return clauses.join(",");
 }
 
+// A search like "018/132" names a card by its printed denominator, but
+// that's the set's *regular* card count — secret rares print beyond it
+// (e.g. Mega Evolutions cards say /132, but the set's actual total_cards
+// is 188 once its secret rares are included), so it never overshoots the
+// real total_cards, only undershoots it. Pick the candidate set whose
+// total_cards is the closest value at or above the searched denominator,
+// rather than requiring an exact match.
+function pickBestSetForNumber(
+  rows: { set_id: string | null; set?: { total_cards: number } | null }[],
+  wantedTotal: number,
+): string | null {
+  let best: { setId: string; diff: number } | null = null;
+  for (const row of rows) {
+    if (!row.set_id || !row.set || row.set.total_cards < wantedTotal) continue;
+    const diff = row.set.total_cards - wantedTotal;
+    if (!best || diff < best.diff) best = { setId: row.set_id, diff };
+  }
+  return best?.setId ?? null;
+}
+
 // Public read paths (homepage, shop, news) must never 500 the storefront
 // just because Supabase isn't configured yet or a query fails — they
 // degrade to empty results instead, and the pages already render sensible
@@ -227,11 +247,11 @@ export async function getProducts(filters: ShopFilters = {}): Promise<Product[]>
 
     if (setNumber) {
       const wantedNumber = normalizeCardNumber(setNumber.number);
-      products = products.filter(
-        (p) =>
-          normalizeCardNumber(p.card_number ?? "") === wantedNumber &&
-          p.set?.total_cards === setNumber.total,
+      const numberMatches = products.filter(
+        (p) => normalizeCardNumber(p.card_number ?? "") === wantedNumber,
       );
+      const bestSetId = pickBestSetForNumber(numberMatches, setNumber.total);
+      products = bestSetId ? numberMatches.filter((p) => p.set_id === bestSetId) : [];
     }
 
     // `card_number` is text (e.g. "4", "004/102"), so a plain DB text sort
@@ -313,10 +333,9 @@ export async function getShopEntries(filters: ShopFilters = {}): Promise<ShopEnt
     let cards = (data as (Card & { set: Set | null })[]) ?? [];
     if (setNumber) {
       const wantedNumber = normalizeCardNumber(setNumber.number);
-      cards = cards.filter(
-        (c) =>
-          normalizeCardNumber(c.number) === wantedNumber && c.set?.total_cards === setNumber.total,
-      );
+      const numberMatches = cards.filter((c) => normalizeCardNumber(c.number) === wantedNumber);
+      const bestSetId = pickBestSetForNumber(numberMatches, setNumber.total);
+      cards = bestSetId ? numberMatches.filter((c) => c.set_id === bestSetId) : [];
     }
 
     // Products store the card number as entered (often "180/217"), while
