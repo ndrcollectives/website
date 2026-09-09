@@ -6,6 +6,8 @@ import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchAllRows } from "@/lib/supabase/paginate";
 import { normalizeCardNumber } from "@/lib/card-number";
+import { getRarityTier } from "@/lib/rarity";
+import { getSuggestedPriceCents } from "@/lib/default-prices";
 
 function slugify(title: string) {
   return title
@@ -209,6 +211,77 @@ export async function backfillProductImages() {
     );
   }
   redirect(`/admin/products?${params.toString()}`);
+}
+
+const BULK_TIERS = new Set(["common", "uncommon", "rare", "rare-holo", "double-rare"]);
+
+// Non-Normal variants are folded into the title as " · <Variant>" (see
+// createProductFromCard) — there's no dedicated variant column, so that
+// suffix is the only signal for products created via the quick-listing
+// form. Older CSV-imported titles that don't follow this convention fall
+// back to the Normal-tier price, which may undercharge a holo print.
+const TITLE_VARIANT_SUFFIXES: [string, string][] = [
+  [" · 1st Edition", "1st Edition"],
+  [" · Reverse Holofoil", "Reverse Holofoil"],
+  [" · Holofoil", "Holofoil"],
+];
+
+function variantFromTitle(title: string): string {
+  for (const [suffix, variant] of TITLE_VARIANT_SUFFIXES) {
+    if (title.endsWith(suffix)) return variant;
+  }
+  return "Normal";
+}
+
+// Resets every single-card listing in the bulk tiers (common/uncommon/
+// rare/rare-holo/double-rare) to the current default-price table — an
+// explicit, occasional bulk action, not something run automatically,
+// since it overwrites prices that may have been set by hand. Chase
+// rarities (Illustration Rare and up) are deliberately left untouched:
+// that data is far rougher and a flat price is much more likely to be
+// wrong for a specific valuable card.
+export async function resetBulkTierPrices() {
+  await requireAdmin();
+  const supabase = createAdminClient();
+
+  const candidates = await fetchAllRows<{
+    id: string;
+    title: string;
+    rarity: string | null;
+    price_cents: number;
+  }>((from, to) =>
+    supabase
+      .from("products")
+      .select("id, title, rarity, price_cents")
+      .eq("product_type", "single")
+      .range(from, to),
+  );
+
+  const targets = candidates.filter((p) => BULK_TIERS.has(getRarityTier(p.rarity)));
+
+  const updates = targets
+    .map((p) => ({
+      id: p.id,
+      newPrice: getSuggestedPriceCents(p.rarity, variantFromTitle(p.title)),
+      oldPrice: p.price_cents,
+    }))
+    .filter((u) => u.newPrice !== u.oldPrice);
+
+  const BATCH_SIZE = 20;
+  let updated = 0;
+  for (let i = 0; i < updates.length; i += BATCH_SIZE) {
+    const batch = updates.slice(i, i + BATCH_SIZE);
+    const results = await Promise.all(
+      batch.map((u) =>
+        supabase.from("products").update({ price_cents: u.newPrice }).eq("id", u.id),
+      ),
+    );
+    updated += results.filter((r) => !r.error).length;
+  }
+
+  revalidatePath("/admin/products");
+  revalidatePath("/shop");
+  redirect(`/admin/products?repriced=${updated}&repriceScanned=${targets.length}`);
 }
 
 export async function deleteProduct(formData: FormData) {

@@ -7,12 +7,15 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { ProductTable } from "@/components/admin/product-table";
-import { backfillProductImages, createProduct } from "./actions";
+import { ConfirmSubmitForm } from "@/components/admin/confirm-submit-button";
+import { backfillProductImages, createProduct, resetBulkTierPrices } from "./actions";
 
 type SearchParams = {
   backfilled?: string;
   noNumberMatch?: string;
   unsyncedSets?: string;
+  repriced?: string;
+  repriceScanned?: string;
 };
 
 export default async function AdminProductsPage({
@@ -21,7 +24,8 @@ export default async function AdminProductsPage({
   searchParams: Promise<SearchParams>;
 }) {
   await requireAdmin();
-  const { backfilled, noNumberMatch, unsyncedSets } = await searchParams;
+  const { backfilled, noNumberMatch, unsyncedSets, repriced, repriceScanned } =
+    await searchParams;
   const supabase = createAdminClient();
 
   const [{ data: products }, { data: sets }, cardSetIds] = await Promise.all([
@@ -167,6 +171,31 @@ export default async function AdminProductsPage({
           touches listings with no image.
         </p>
       </form>
+
+      {repriced !== undefined && (
+        <div className="mt-4 rounded-lg border border-accent-yellow/40 bg-accent-yellow/10 p-3 text-sm text-accent-yellow">
+          {repriced === "0"
+            ? `Checked ${repriceScanned ?? 0} bulk-tier listing${repriceScanned === "1" ? "" : "s"} — all already matched the default price table.`
+            : `Repriced ${repriced} of ${repriceScanned ?? 0} bulk-tier listing${repriceScanned === "1" ? "" : "s"} to match the current default price table.`}
+        </div>
+      )}
+
+      <div className="mt-6">
+        <ConfirmSubmitForm
+          action={resetBulkTierPrices}
+          variant="secondary"
+          confirmMessage="Reset the price of every Common/Uncommon/Rare/Double Rare single to the current default price table? This overwrites any price you set by hand on those listings. Illustration Rare and up are left untouched."
+        >
+          Reset Bulk-Tier Prices
+        </ConfirmSubmitForm>
+        <p className="mt-2 text-xs text-muted">
+          Overwrites the price of every single-card listing in Common,
+          Uncommon, Rare, Rare Holo, and Double Rare to match{" "}
+          <code className="text-[11px]">src/lib/default-prices.ts</code> —
+          including ones you priced by hand. Illustration Rare and up are
+          never touched, since that pricing data is much rougher.
+        </p>
+      </div>
 
       <form
         action={createProduct}
