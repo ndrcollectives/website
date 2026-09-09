@@ -113,11 +113,6 @@ export function Footer() {
                   {dict.footer.newsSpoilers}
                 </Link>
               </li>
-              <li>
-                <Link href="/cookies" className="hover:text-accent-yellow">
-                  {dict.cookies.manage}
-                </Link>
-              </li>
             </ul>
           </div>
 
