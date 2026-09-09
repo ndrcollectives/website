@@ -244,6 +244,7 @@ export function ShopFilters({ sets, params }: { sets: Set[]; params: SearchParam
             <option value="price_asc">{dict.shop.sortPriceAsc}</option>
             <option value="price_desc">{dict.shop.sortPriceDesc}</option>
             <option value="card_number">{dict.shop.sortCardNumber}</option>
+            <option value="rarity">{dict.shop.sortRarity}</option>
           </Select>
         </div>
 

@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { isNextControlFlowError } from "@/lib/supabase/errors";
 import { normalizeCardNumber } from "@/lib/card-number";
+import { getRarityRank } from "@/lib/rarity";
 import type { Card, FavoriteEntry, NewsArticle, Product, Set, ShopEntry } from "@/lib/types";
 
 // Public read paths (homepage, shop, news) must never 500 the storefront
@@ -144,7 +145,7 @@ export type ShopFilters = {
   minPrice?: number;
   maxPrice?: number;
   search?: string;
-  sort?: "price_asc" | "price_desc" | "newest" | "card_number";
+  sort?: "price_asc" | "price_desc" | "newest" | "card_number" | "rarity";
 };
 
 export async function getProducts(filters: ShopFilters = {}): Promise<Product[]> {
@@ -174,6 +175,7 @@ export async function getProducts(filters: ShopFilters = {}): Promise<Product[]>
         query = query.order("price_cents", { ascending: false });
         break;
       case "card_number":
+      case "rarity":
         break;
       default:
         query = query.order("created_at", { ascending: false });
@@ -190,6 +192,13 @@ export async function getProducts(filters: ShopFilters = {}): Promise<Product[]>
           numeric: true,
         }),
       );
+    }
+
+    // Rarity isn't a fixed enum in the DB (free text like "Rare Holo",
+    // "Double Rare"), so sort by the same tier bucketing used everywhere
+    // else in the UI (rarity badges, default pricing) — common to rarest.
+    if (filters.sort === "rarity") {
+      products.sort((a, b) => getRarityRank(a.rarity) - getRarityRank(b.rarity));
     }
 
     return products;
@@ -266,6 +275,14 @@ export async function getShopEntries(filters: ShopFilters = {}): Promise<ShopEnt
         const numA = a.kind === "product" ? (a.product.card_number ?? "") : a.card.number;
         const numB = b.kind === "product" ? (b.product.card_number ?? "") : b.card.number;
         return numA.localeCompare(numB, undefined, { numeric: true });
+      });
+    }
+
+    if (filters.sort === "rarity") {
+      entries.sort((a, b) => {
+        const rarityA = a.kind === "product" ? a.product.rarity : a.card.rarity;
+        const rarityB = b.kind === "product" ? b.product.rarity : b.card.rarity;
+        return getRarityRank(rarityA) - getRarityRank(rarityB);
       });
     }
 

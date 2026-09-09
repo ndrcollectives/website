@@ -38,6 +38,24 @@ export function getRarityTier(rarity: string | null | undefined): RarityTier {
   return "common";
 }
 
+// Common -> rarest, for sorting the shop grid by rarity (see the
+// "rarity" ShopFilters sort option in lib/queries.ts).
+const TIER_ORDER: RarityTier[] = [
+  "common",
+  "uncommon",
+  "rare",
+  "rare-holo",
+  "double-rare",
+  "ultra-rare",
+  "illustration-rare",
+  "special-illustration-rare",
+  "secret-rare",
+];
+
+export function getRarityRank(rarity: string | null | undefined): number {
+  return TIER_ORDER.indexOf(getRarityTier(rarity));
+}
+
 const TIER_CLASSES: Record<RarityTier, string> = {
   common: "border border-border bg-surface-raised text-muted",
   uncommon: "border border-transparent bg-emerald-500/15 text-emerald-400",
