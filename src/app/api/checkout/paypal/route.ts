@@ -65,16 +65,18 @@ async function handleCreate(request: Request) {
         })),
       },
     ],
-    payment_source: {
-      paypal: {
-        experience_context: {
-          brand_name: "NDR Collectives",
-          user_action: "PAY_NOW",
-          shipping_preference: "GET_FROM_FILE",
-          return_url: `${siteUrl}/api/checkout/paypal/return`,
-          cancel_url: `${siteUrl}/cart`,
-        },
-      },
+    // No payment_source here on purpose — setting payment_source.paypal
+    // forces the buyer straight into the PayPal-wallet-only flow. Leaving
+    // it unset sends them to PayPal's own hosted checkout page instead,
+    // which offers whichever payment methods are enabled for EUR on this
+    // PayPal business account — PayPal balance/card, and local methods
+    // like iDEAL, once turned on in the PayPal dashboard.
+    application_context: {
+      brand_name: "NDR Collectives",
+      user_action: "PAY_NOW",
+      shipping_preference: "GET_FROM_FILE",
+      return_url: `${siteUrl}/api/checkout/paypal/return`,
+      cancel_url: `${siteUrl}/cart`,
     },
   });
 
