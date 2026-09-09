@@ -23,6 +23,7 @@ export function QuickListingForm({
   image: string | null;
 }) {
   const [variant, setVariant] = useState("Normal");
+  const [pattern, setPattern] = useState("");
   const [priceTouched, setPriceTouched] = useState(false);
   const [price, setPrice] = useState(() =>
     (getSuggestedPriceCents(rarity, "Normal") / 100).toFixed(2),
@@ -30,6 +31,7 @@ export function QuickListingForm({
 
   function handleVariantChange(next: string) {
     setVariant(next);
+    if (next !== "Reverse Holofoil") setPattern("");
     if (!priceTouched) {
       setPrice((getSuggestedPriceCents(rarity, next) / 100).toFixed(2));
     }
@@ -54,6 +56,15 @@ export function QuickListingForm({
           </option>
         ))}
       </Select>
+      {variant === "Reverse Holofoil" && (
+        <Input
+          name="pattern"
+          placeholder="Pattern (optional, e.g. Poke Ball)"
+          value={pattern}
+          onChange={(e) => setPattern(e.target.value)}
+          className="h-9 w-52"
+        />
+      )}
       <Input
         name="price"
         type="number"

@@ -8,7 +8,7 @@ import { fetchAllRows } from "@/lib/supabase/paginate";
 import { normalizeCardNumber } from "@/lib/card-number";
 import { getRarityTier } from "@/lib/rarity";
 import { getSuggestedPriceCents } from "@/lib/default-prices";
-import { variantFromTitle } from "@/lib/product-variant";
+import { variantFromTitle, buildVariantTitle } from "@/lib/product-variant";
 
 function slugify(title: string) {
   return title
@@ -101,7 +101,8 @@ export async function createProductFromCard(formData: FormData) {
 
   const cardName = String(formData.get("card_name") ?? "");
   const variant = String(formData.get("variant") ?? "Normal");
-  const title = variant === "Normal" ? cardName : `${cardName} · ${variant}`;
+  const pattern = String(formData.get("pattern") ?? "").trim() || null;
+  const title = buildVariantTitle(cardName, variant, pattern);
   const image = String(formData.get("image") ?? "");
 
   const { error } = await supabase.from("products").insert({
