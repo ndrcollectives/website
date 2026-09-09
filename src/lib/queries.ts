@@ -1,13 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { isNextControlFlowError } from "@/lib/supabase/errors";
-import { normalizeCardNumber } from "@/lib/card-number";
+import { normalizeCardNumber, parseSetNumber } from "@/lib/card-number";
 import { getRarityRank } from "@/lib/rarity";
 import type { Card, FavoriteEntry, NewsArticle, Product, Set, ShopEntry } from "@/lib/types";
 
-// Public read paths (homepage, shop, news) must never 500 the storefront
-// just because Supabase isn't configured yet or a query fails — they
-// degrade to empty results instead, and the pages already render sensible
-// empty states for that case.
 // PostgREST's .or() filter string treats "," and ")" as syntax — wrap each
 // value in double quotes (escaping embedded quotes) so a search term
 // containing them can't break the filter.
@@ -31,6 +27,10 @@ function searchOrFilter(columns: string[], search: string): string {
   return clauses.join(",");
 }
 
+// Public read paths (homepage, shop, news) must never 500 the storefront
+// just because Supabase isn't configured yet or a query fails — they
+// degrade to empty results instead, and the pages already render sensible
+// empty states for that case.
 async function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
   try {
     return await fn();
@@ -194,7 +194,16 @@ export async function getProducts(filters: ShopFilters = {}): Promise<Product[]>
     if (filters.condition) query = query.eq("condition", filters.condition);
     if (filters.minPrice != null) query = query.gte("price_cents", filters.minPrice);
     if (filters.maxPrice != null) query = query.lte("price_cents", filters.maxPrice);
-    if (filters.search) {
+
+    // "018/132" names one specific card in one specific set (the
+    // denominator is that set's total card count) — scope to just that
+    // card number here, and to the matching set below once we have
+    // `product.set` to check against, rather than matching card #18
+    // across every set that happens to have one.
+    const setNumber = filters.search ? parseSetNumber(filters.search) : null;
+    if (setNumber) {
+      query = query.or(searchOrFilter(["card_number"], setNumber.number));
+    } else if (filters.search) {
       query = query.or(searchOrFilter(["title", "card_number"], filters.search));
     }
 
@@ -214,7 +223,16 @@ export async function getProducts(filters: ShopFilters = {}): Promise<Product[]>
     }
 
     const { data } = await query;
-    const products = (data as Product[]) ?? [];
+    let products = (data as Product[]) ?? [];
+
+    if (setNumber) {
+      const wantedNumber = normalizeCardNumber(setNumber.number);
+      products = products.filter(
+        (p) =>
+          normalizeCardNumber(p.card_number ?? "") === wantedNumber &&
+          p.set?.total_cards === setNumber.total,
+      );
+    }
 
     // `card_number` is text (e.g. "4", "004/102"), so a plain DB text sort
     // puts "10" before "2" — sort numerically here instead.
@@ -283,12 +301,23 @@ export async function getShopEntries(filters: ShopFilters = {}): Promise<ShopEnt
 
     if (filters.setId) cardQuery = cardQuery.eq("set_id", filters.setId);
     if (filters.rarity) cardQuery = cardQuery.eq("rarity", filters.rarity);
-    if (filters.search) {
+
+    const setNumber = filters.search ? parseSetNumber(filters.search) : null;
+    if (setNumber) {
+      cardQuery = cardQuery.or(searchOrFilter(["number"], setNumber.number));
+    } else if (filters.search) {
       cardQuery = cardQuery.or(searchOrFilter(["name", "number"], filters.search));
     }
 
     const { data } = await cardQuery;
-    const cards = (data as (Card & { set: Set | null })[]) ?? [];
+    let cards = (data as (Card & { set: Set | null })[]) ?? [];
+    if (setNumber) {
+      const wantedNumber = normalizeCardNumber(setNumber.number);
+      cards = cards.filter(
+        (c) =>
+          normalizeCardNumber(c.number) === wantedNumber && c.set?.total_cards === setNumber.total,
+      );
+    }
 
     // Products store the card number as entered (often "180/217"), while
     // the synced catalog's `number` is bare ("180") — normalize the
