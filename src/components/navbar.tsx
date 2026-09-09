@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
+  BookOpen,
   ChevronRight,
   Heart,
   Home,
@@ -114,6 +115,9 @@ export function Navbar({ isSignedIn }: { isSignedIn: boolean }) {
     { href: "/news", label: dict.nav.news, icon: Newspaper },
     { href: "/shop", label: dict.nav.shop, icon: ShoppingBag },
     { href: "/sets", label: dict.nav.sets, icon: Layers },
+    ...(isSignedIn
+      ? [{ href: "/account/binder", label: dict.nav.binder, icon: BookOpen }]
+      : []),
   ];
 
   function handleSearch(e: FormEvent) {

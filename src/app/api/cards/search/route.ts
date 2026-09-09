@@ -18,7 +18,7 @@ export async function GET(request: Request) {
   const supabase = await createClient();
   let query = supabase
     .from("cards")
-    .select("id, name, number, set:sets(id, name, code)")
+    .select("id, name, number, rarity, image_small, set:sets(id, name, code)")
     .ilike("name", `%${q}%`)
     .order("name", { ascending: true })
     .limit(12);

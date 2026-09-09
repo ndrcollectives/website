@@ -147,6 +147,27 @@ export type ShopEntry =
   | { kind: "product"; id: string; product: Product }
   | { kind: "card"; id: string; card: Card; set: Set | null };
 
+// A user's personal collection tracker — distinct from `favorites` (a
+// wishlist of cards someone wants), a binder holds cards someone already
+// owns. Up to 5 per user (enforced in the create action, not the DB).
+export type Binder = {
+  id: string;
+  user_id: string;
+  name: string;
+  created_at: string;
+};
+
+export type BinderItem = {
+  id: string;
+  binder_id: string;
+  card_id: string;
+  variant: string;
+  condition: string;
+  quantity: number;
+  added_at: string;
+  card?: (Card & { set?: Set | null }) | null;
+};
+
 // A favorite is either a listed product or a catalog card with no listing
 // yet (favorited from a set's checklist) — see getFavoriteEntries.
 export type FavoriteEntry =

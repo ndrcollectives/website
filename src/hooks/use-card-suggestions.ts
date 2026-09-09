@@ -6,6 +6,8 @@ export type CardSuggestion = {
   id: string;
   name: string;
   number: string;
+  rarity?: string | null;
+  image_small?: string | null;
   set: { id: string; name: string; code: string } | null;
 };
 
