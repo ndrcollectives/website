@@ -2,15 +2,16 @@ import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { stripe } from "@/lib/stripe";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { formatPrice } from "@/lib/utils";
 import { ClearCartOnMount } from "@/components/cart/clear-cart-on-mount";
 
 export default async function OrderSuccessPage({
   searchParams,
 }: {
-  searchParams: Promise<{ session_id?: string }>;
+  searchParams: Promise<{ session_id?: string; paypal_order_id?: string }>;
 }) {
-  const { session_id } = await searchParams;
+  const { session_id, paypal_order_id } = await searchParams;
 
   let amountTotal: number | null = null;
   let email: string | null = null;
@@ -23,6 +24,17 @@ export default async function OrderSuccessPage({
     } catch {
       // Session may be invalid/expired — still show a generic confirmation.
     }
+  } else if (paypal_order_id) {
+    // The return route already captured and recorded the order by the
+    // time the buyer lands here — read it back from our own DB rather
+    // than calling PayPal again.
+    const supabase = createAdminClient();
+    const { data: order } = await supabase
+      .from("orders")
+      .select("total_amount_cents")
+      .eq("paypal_order_id", paypal_order_id)
+      .single();
+    amountTotal = order?.total_amount_cents ?? null;
   }
 
   return (

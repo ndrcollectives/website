@@ -30,6 +30,9 @@ export default async function AdminOrdersPage() {
                 </p>
               </div>
               <div className="flex items-center gap-2">
+                <Badge variant="blue">
+                  {order.payment_provider === "paypal" ? "PayPal" : "Stripe"}
+                </Badge>
                 <Badge>{order.status}</Badge>
                 <span className="font-semibold text-accent-yellow">
                   {formatPrice(order.total_amount_cents)}
@@ -70,14 +73,15 @@ export default async function AdminOrdersPage() {
               </Button>
             </form>
 
-            {order.stripe_payment_intent_id && order.status !== "refunded" && (
-              <form action={refundOrder} className="mt-2">
-                <input type="hidden" name="id" value={order.id} />
-                <Button size="sm" variant="destructive" type="submit">
-                  Refund via Stripe
-                </Button>
-              </form>
-            )}
+            {(order.stripe_payment_intent_id || order.paypal_capture_id) &&
+              order.status !== "refunded" && (
+                <form action={refundOrder} className="mt-2">
+                  <input type="hidden" name="id" value={order.id} />
+                  <Button size="sm" variant="destructive" type="submit">
+                    Refund via {order.payment_provider === "paypal" ? "PayPal" : "Stripe"}
+                  </Button>
+                </form>
+              )}
           </div>
         ))}
       </div>

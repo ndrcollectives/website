@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { stripe } from "@/lib/stripe";
+import { refundCapture } from "@/lib/paypal";
 
 export async function updateFulfillment(formData: FormData) {
   await requireAdmin();
@@ -31,11 +32,13 @@ export async function refundOrder(formData: FormData) {
 
   const { data: order } = await supabase
     .from("orders")
-    .select("stripe_payment_intent_id")
+    .select("payment_provider, stripe_payment_intent_id, paypal_capture_id")
     .eq("id", id)
     .single();
 
-  if (order?.stripe_payment_intent_id) {
+  if (order?.payment_provider === "paypal" && order.paypal_capture_id) {
+    await refundCapture(order.paypal_capture_id);
+  } else if (order?.stripe_payment_intent_id) {
     await stripe.refunds.create({ payment_intent: order.stripe_payment_intent_id });
   }
 

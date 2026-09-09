@@ -3,8 +3,7 @@ import Stripe from "stripe";
 import { stripe } from "@/lib/stripe";
 import { createClient } from "@/lib/supabase/server";
 import { calculateTransactionFeeCents, SHIPPING_FLAT_CENTS } from "@/lib/pricing";
-
-type CheckoutLineInput = { productId: string; quantity: number };
+import { validateCartItems, subtotalCentsOf, type CheckoutLineInput } from "@/lib/checkout";
 
 export async function POST(request: Request) {
   try {
@@ -29,27 +28,16 @@ export async function POST(request: Request) {
 async function handleCheckout(request: Request) {
   const { items } = (await request.json()) as { items: CheckoutLineInput[] };
 
-  if (!Array.isArray(items) || items.length === 0) {
-    return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
-  }
-
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const productIds = items.map((i) => i.productId);
-  const { data: products, error } = await supabase
-    .from("products")
-    .select("*")
-    .in("id", productIds);
-
-  if (error || !products || products.length === 0) {
-    return NextResponse.json({ error: "Unable to load products" }, { status: 400 });
+  const validated = await validateCartItems(supabase, items);
+  if ("error" in validated) {
+    return NextResponse.json({ error: validated.error }, { status: 400 });
   }
 
-  // Never trust client-submitted prices — always re-price and re-validate
-  // stock against the database before creating the Stripe session.
   const lineItems: Array<{
     price_data: {
       currency: string;
@@ -57,43 +45,23 @@ async function handleCheckout(request: Request) {
       product_data: { name: string; images?: string[]; metadata: Record<string, string> };
     };
     quantity: number;
-  }> = [];
-
-  for (const item of items) {
-    const product = products.find((p) => p.id === item.productId);
-    if (!product) {
-      return NextResponse.json(
-        { error: `Product ${item.productId} no longer exists` },
-        { status: 400 },
-      );
-    }
-    if (!product.is_preorder && product.inventory_count < item.quantity) {
-      return NextResponse.json(
-        { error: `Not enough stock for "${product.title}"` },
-        { status: 400 },
-      );
-    }
-    lineItems.push({
-      price_data: {
-        currency: "eur",
-        unit_amount: product.price_cents,
-        product_data: {
-          name: product.title,
-          images: product.images?.[0] ? [product.images[0]] : undefined,
-          metadata: { product_id: product.id },
-        },
+  }> = validated.lines.map((line) => ({
+    price_data: {
+      currency: "eur",
+      unit_amount: line.unitAmountCents,
+      product_data: {
+        name: line.title,
+        images: line.image ? [line.image] : undefined,
+        metadata: { product_id: line.productId },
       },
-      quantity: item.quantity,
-    });
-  }
+    },
+    quantity: line.quantity,
+  }));
 
-  // Transaction fee covers Stripe's own per-charge cost and is computed
-  // off the product subtotal only — shipping and the fee itself aren't
-  // included, matching how Stripe's real fee is assessed.
-  const subtotalCents = lineItems.reduce(
-    (sum, li) => sum + li.price_data.unit_amount * li.quantity,
-    0,
-  );
+  // Transaction fee covers the payment provider's own per-charge cost and
+  // is computed off the product subtotal only — shipping and the fee
+  // itself aren't included, matching how the real fee is assessed.
+  const subtotalCents = subtotalCentsOf(validated.lines);
   lineItems.push({
     price_data: {
       currency: "eur",

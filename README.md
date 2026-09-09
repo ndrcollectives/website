@@ -2,13 +2,14 @@
 
 Pokémon TCG news, upcoming set release calendar, and a marketplace for
 singles, sealed product, and graded slabs — built with Next.js (App Router),
-Supabase, and Stripe.
+Supabase, Stripe, and PayPal.
 
 ## Stack
 
 - **Frontend:** Next.js 16 (App Router) + TypeScript + Tailwind CSS v4
 - **Backend:** Supabase (Postgres, Auth, Row Level Security, Storage)
-- **Payments:** Stripe Checkout + webhooks
+- **Payments:** Stripe Checkout + webhooks, and a direct PayPal Orders API
+  integration (its own capture flow + webhook) as a second option at checkout
 - **Hosting:** Vercel
 
 ## Getting Started
@@ -49,12 +50,25 @@ npm install
    stripe listen --forward-to localhost:3000/api/webhooks/stripe
    ```
 
-### 4. Environment variables
+### 4. Configure PayPal
 
-Copy `.env.example` to `.env.local` and fill in the Supabase and Stripe
-values above.
+1. Create a REST app at
+   [developer.paypal.com/dashboard/applications](https://developer.paypal.com/dashboard/applications)
+   and grab its **Client ID** and **Secret** (sandbox ones for local dev).
+2. Register a webhook on that app pointing at `/api/webhooks/paypal`,
+   subscribed to at least `CHECKOUT.ORDER.APPROVED`,
+   `PAYMENT.CAPTURE.COMPLETED`, and `PAYMENT.CAPTURE.REFUNDED`, and copy its
+   **Webhook ID**.
+3. This is a separate integration from Stripe — it doesn't touch Stripe's
+   keys or webhook at all, and shows up as its own "Checkout with PayPal"
+   button in the cart alongside Stripe's.
 
-### 5. Set release data
+### 5. Environment variables
+
+Copy `.env.example` to `.env.local` and fill in the Supabase, Stripe, and
+PayPal values above.
+
+### 6. Set release data
 
 Set data (names, release dates, card counts, artwork) is kept in sync with
 the [pokemon-tcg-data](https://github.com/PokemonTCG/pokemon-tcg-data)
@@ -77,7 +91,7 @@ third-party API server, so it isn't affected by api.pokemontcg.io's outages:
   click **"Sync Cards"** next to a set to pull every card in it from the
   same API, then view the result at `/sets/<set-code>`.
 
-### 6. News: hand-written and/or automated
+### 7. News: hand-written and/or automated
 
 News is admin-authored by default through the CMS at `/admin/news`. You can
 additionally automate it from three independent sources (use any
@@ -113,13 +127,13 @@ combination, or none):
   button will show an error explaining nothing's configured, and the cron
   route no-ops silently.
 
-### 7. Seed sample data (optional)
+### 8. Seed sample data (optional)
 
 ```bash
 npm run seed
 ```
 
-### 8. Run the dev server
+### 9. Run the dev server
 
 ```bash
 npm run dev
@@ -128,12 +142,12 @@ npm run dev
 ## Project Structure
 
 - `src/app` — routes (App Router): homepage, `/news`, `/sets`, `/shop`,
-  `/cart`, `/account`, `/admin`, and API routes for checkout + the Stripe
-  webhook.
+  `/cart`, `/account`, `/admin`, and API routes for checkout (Stripe +
+  PayPal) and their webhooks.
 - `src/components` — shared UI (design-system primitives, navbar, cart
   drawer, product card with the holo-foil hover effect, countdown timer).
-- `src/lib` — Supabase clients (browser/server/admin), Stripe client,
-  typed data-fetching helpers, and auth utilities.
+- `src/lib` — Supabase clients (browser/server/admin), Stripe client, PayPal
+  REST client, typed data-fetching helpers, and auth utilities.
 - `supabase/migrations` — SQL schema and RLS policies.
 - `scripts/seed.ts` — sample data loader.
 
@@ -144,6 +158,7 @@ npm run dev
    `.env.example` (including `NEXT_PUBLIC_SITE_URL` set to your production
    URL).
 3. Point your Stripe webhook endpoint at
-   `https://<your-domain>/api/webhooks/stripe`.
+   `https://<your-domain>/api/webhooks/stripe`, and your PayPal webhook at
+   `https://<your-domain>/api/webhooks/paypal`.
 4. Deploy — Vercel builds and hosts the app on its edge network with
    preview deployments for every PR.

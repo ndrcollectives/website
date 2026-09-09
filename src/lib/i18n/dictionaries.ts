@@ -110,6 +110,7 @@ const en = {
     total: "Total",
     shippingNote: "Taxes calculated at checkout.",
     checkout: "Checkout with Stripe",
+    checkoutPaypal: "Checkout with PayPal",
     redirecting: "Redirecting...",
   },
   favorites: {
@@ -276,6 +277,7 @@ const nl: Dictionary = {
     total: "Totaal",
     shippingNote: "Belasting wordt bij het afrekenen berekend.",
     checkout: "Afrekenen met Stripe",
+    checkoutPaypal: "Afrekenen met PayPal",
     redirecting: "Doorverwijzen...",
   },
   favorites: {

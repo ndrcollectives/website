@@ -114,11 +114,16 @@ export type OrderStatus =
   | "cancelled"
   | "refunded";
 
+export type PaymentProvider = "stripe" | "paypal";
+
 export type Order = {
   id: string;
   user_id: string | null;
-  stripe_session_id: string;
+  payment_provider: PaymentProvider;
+  stripe_session_id: string | null;
   stripe_payment_intent_id: string | null;
+  paypal_order_id: string | null;
+  paypal_capture_id: string | null;
   status: OrderStatus;
   total_amount_cents: number;
   shipping_address: Record<string, unknown> | null;

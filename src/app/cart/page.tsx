@@ -13,15 +13,15 @@ import { calculateTransactionFeeCents, SHIPPING_FLAT_CENTS } from "@/lib/pricing
 export default function CartPage() {
   const { items, removeItem, setQuantity, subtotalCents } = useCart();
   const { dict } = useLanguage();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<"stripe" | "paypal" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const transactionFeeCents = calculateTransactionFeeCents(subtotalCents);
 
-  async function handleCheckout() {
-    setLoading(true);
+  async function handleCheckout(provider: "stripe" | "paypal") {
+    setLoading(provider);
     setError(null);
     try {
-      const res = await fetch("/api/checkout", {
+      const res = await fetch(provider === "paypal" ? "/api/checkout/paypal" : "/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -33,7 +33,7 @@ export default function CartPage() {
       window.location.href = data.url;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Checkout failed");
-      setLoading(false);
+      setLoading(null);
     }
   }
 
@@ -140,10 +140,19 @@ export default function CartPage() {
           <Button
             size="lg"
             className="mt-4 w-full"
-            onClick={handleCheckout}
-            disabled={loading}
+            onClick={() => handleCheckout("stripe")}
+            disabled={loading !== null}
           >
-            {loading ? dict.cart.redirecting : dict.cart.checkout}
+            {loading === "stripe" ? dict.cart.redirecting : dict.cart.checkout}
+          </Button>
+          <Button
+            size="lg"
+            variant="secondary"
+            className="mt-2 w-full"
+            onClick={() => handleCheckout("paypal")}
+            disabled={loading !== null}
+          >
+            {loading === "paypal" ? dict.cart.redirecting : dict.cart.checkoutPaypal}
           </Button>
         </div>
       </div>
