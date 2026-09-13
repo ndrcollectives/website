@@ -106,7 +106,14 @@ export type SyncedArticle = {
   locale: ArticleLocale;
 };
 
+// Without an explicit timeout, an unresponsive (not erroring, just never
+// replying) feed or press site hangs the whole sync indefinitely — no
+// banner, no error, the admin action just never completes. Every network
+// call in this file is bounded for the same reason.
+const FETCH_TIMEOUT_MS = 15_000;
+
 const parser = new Parser({
+  timeout: FETCH_TIMEOUT_MS,
   customFields: {
     item: [["media:content", "mediaContent"], ["enclosure", "enclosure"]],
   },
@@ -252,6 +259,7 @@ async function fetchFromPressSite(config: PressSiteConfig): Promise<{
     const res = await fetch(config.url, {
       headers: { "User-Agent": USER_AGENT },
       cache: "no-store",
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
     if (!res.ok) {
       throw new Error(`Status code ${res.status}`);
@@ -339,6 +347,7 @@ async function fetchArticleBody(url: string): Promise<string | null> {
     const res = await fetch(url, {
       headers: { "User-Agent": USER_AGENT },
       cache: "no-store",
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
     if (!res.ok) return null;
 

@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { SubmitButton } from "@/components/admin/submit-button";
 import { createArticle, deleteArticle, syncNewsFromFeeds, togglePublish } from "./actions";
 
 export default async function AdminNewsPage({
@@ -40,9 +41,9 @@ export default async function AdminNewsPage({
       )}
 
       <form action={syncNewsFromFeeds} className="mt-6">
-        <Button type="submit" variant="secondary">
+        <SubmitButton variant="secondary" pendingLabel="Syncing...">
           Sync News from Configured Sources
-        </Button>
+        </SubmitButton>
         <p className="mt-2 text-xs text-muted">
           RSS items import as a headline + short excerpt linking back to
           the original source. The two official press sites import their
